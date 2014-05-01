@@ -82,7 +82,7 @@ public abstract class Detector {
         if (value.startsWith("linux")) {
             return "linux";
         }
-        if (value.startsWith("macosx")) {
+        if (value.startsWith("macosx") || value.startsWith("osx")) {
             return "osx";
         }
         if (value.startsWith("freebsd")) {
@@ -106,28 +106,28 @@ public abstract class Detector {
 
     private static String normalizeArch(String value) {
         value = normalize(value);
-        if (value.matches("^(amd64|ia32e|em64t|x64)$")) {
+        if (value.matches("^(x8664|amd64|ia32e|em64t|x64)$")) {
             return "x86_64";
         }
-        if (value.matches("^(i[3-6]86|ia32|x32)$")) {
+        if (value.matches("^(x8632|i[3-6]86|ia32|x32)$")) {
             return "x86_32";
         }
-        if (value.equals("ia64")) {
+        if (value.matches("^(ia64|itanium64)$")) {
             return "itanium_64";
         }
-        if (value.equals("sparc")) {
+        if (value.matches("^(sparc|sparc32)$")) {
             return "sparc_32";
         }
-        if (value.equals("sparcv9")) {
+        if (value.matches("^(sparcv9|sparc64)$")) {
             return "sparc_64";
         }
-        if (value.equals("arm")) {
+        if (value.matches("^(arm|arm32)$")) {
             return "arm_32";
         }
         if (value.equals("aarch64")) {
             return "aarch_64";
         }
-        if (value.equals("ppc")) {
+        if (value.matches("^(ppc|ppc32)$")) {
             return "ppc_32";
         }
         if (value.equals("ppc64")) {
