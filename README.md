@@ -1,10 +1,10 @@
-`os-maven-plugin` is a [Maven](http://maven.apache.org/) plugin that generates various useful platform-dependent project properties normalized from `${os.name}` and `${os.arch}`.
+`os-maven-plugin` is a [Maven](http://maven.apache.org/) extension/plugin that generates various useful platform-dependent project properties normalized from `${os.name}` and `${os.arch}`.
 
 `${os.name}` and `${os.arch}` are often subtly different between JVM and operating system versions or they sometimes contain machine-unfriendly characters such as whitespaces.  This plugin tries to remove such fragmentation so that you can determine the current operating system and architecture reliably.
 
 ### Generated properties
 
-This plugin detects the name of the current operating system and normalizes it into more generic one.
+`os-maven-plugin` detects the name of the current operating system and normalizes it into more generic one.
 
 * `os.detected.name`
   * `aix`
@@ -18,7 +18,7 @@ This plugin detects the name of the current operating system and normalizes it i
   * `sunos`
   * `windows`
 
-This plugin also detects the architecture of the current operating system and normalizes it into more generic one.
+`os-maven-plugin` also detects the architecture of the current operating system and normalizes it into more generic one.
 
 * `os.detected.arch`
   * `x86_64`
@@ -33,65 +33,21 @@ This plugin also detects the architecture of the current operating system and no
 
 You can also use the `${os.detected.classifier}` property, which is a shortcut of `${os.detected.name}-${os.detected.arch}`.
 
-### Executing the plugin
+### Enabling `os-maven-plugin` on your Maven project
 
-Run the `detect` goal of the plugin like the following:
+Add the extension to your `pom.xml` like the following:
 
 ```xml
 <project>
-  ...
   <build>
-    <plugins>
+    <extensions>
       <plugin>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>...</version>
-        <executions>
-          <execution>
-            <id>detect-os</id>
-            <goals>
-              <goal>detect</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-    ...
-
-    <pluginManagement>
-      <plugins>
-        <!-- This enables os-maven-plugin to set the 'os.detected.*' property when Eclipse imports the project. -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>kr.motd.maven</groupId>
-                    <artifactId>os-maven-plugin</artifactId>
-                    <versionRange>[1.0,)</versionRange>
-                    <goals>
-                      <goal>detect</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <execute>
-                      <runOnIncremental>true</runOnIncremental>
-                    </execute>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+        <version>1.1.0</version>
+      </extension>
+    </extensions>
   </build>
-  ...
-
 </project>
 
 ```
@@ -102,7 +58,6 @@ Use `${os.detected.classifier}` as the classifier of the dependency:
 
 ```xml
 <project>
-  ...
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>
@@ -111,7 +66,6 @@ Use `${os.detected.classifier}` as the classifier of the dependency:
       <classifier>${os.detected.classifier}</classifier>
     </dependency>
   </dependencies>
-  ...
 </project>
 ```
 
@@ -121,7 +75,6 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
 
 ```xml
 <project>
-  ...
   <build>
     <plugins>
       <plugin>
@@ -132,10 +85,6 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
       </plugin>
     </plugins>
   </build>
-  ...
 </project>
 ```
-### Not failing the build even if OS detection failed
-
-By default, this plugin fails the build if the current OS or architecture is unknown.  Set the `${failOnUnknownOS}` property to `false` to override the default behavior.
 

@@ -1,5 +1,3 @@
-package kr.motd.maven.plugin.os;
-
 /*
  * Copyright 2014 Trustin Heuiseung Lee.
  *
@@ -15,72 +13,57 @@ package kr.motd.maven.plugin.os;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
+package kr.motd.maven.os;
 
 import java.util.Locale;
 import java.util.Properties;
 
-/**
- * Detects the current operating system and architecture, normalizes them, and sets them to various project
- * properties.
- * <ul>
- * <li>{@code os.detected.name} - normalized {@code os.name} (e.g. {@code linux}, {@code osx})</li>
- * <li>{@code os.detected.arch} - normalized {@code os.arch} (e.g. {@code x86_64}, {@code x86_32})</li>
- * <li>{@code os.detected.classifier} - a shortcut for {@code 'os.detectedName'.'os.detectedArch'}
- *     (e.g. {@code linux-x86_64})</li>
- * </ul>
- */
-@Mojo(name = "detect", defaultPhase = LifecyclePhase.VALIDATE)
-public class DetectMojo extends AbstractMojo {
+public abstract class Detector {
+
+    public static final String DETECTED_NAME = "os.detected.name";
+    public static final String DETECTED_ARCH = "os.detected.arch";
+    public static final String DETECTED_CLASSIFIER = "os.detected.classifier";
 
     private static final String UNKNOWN = "unknown";
 
-    @Parameter(defaultValue = "${project}", readonly = true)
-    private MavenProject project;
-    @Parameter(defaultValue = "${os.name}", readonly = true)
-    private String osName;
-    @Parameter(defaultValue = "${os.arch}", readonly = true)
-    private String osArch;
+    protected void detect(Properties props) throws DetectionException {
+        log("------------------------------------------------------------------------");
+        log("Detecting the operating system and CPU architecture");
+        log("------------------------------------------------------------------------");
 
-    @Parameter(defaultValue = "true")
-    private boolean failOnUnknownOS;
+        Properties allProps = new Properties(System.getProperties());
+        allProps.putAll(props);
 
-    public void execute() throws MojoExecutionException {
+        final String osName = allProps.getProperty("os.name");
+        final String osArch = allProps.getProperty("os.arch");
+
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
         final String detectedClassifier = detectedName + '-' + detectedArch;
 
-        setProperty("os.detected.name", detectedName);
-        setProperty("os.detected.arch", detectedArch);
-        setProperty("os.detected.classifier", detectedClassifier);
+        setProperty(props, DETECTED_NAME, detectedName);
+        setProperty(props, DETECTED_ARCH, detectedArch);
+        setProperty(props, DETECTED_CLASSIFIER, detectedClassifier);
 
-        if (failOnUnknownOS) {
+        final String failOnUnknownOS = allProps.getProperty("failOnUnknownOS");
+        if (failOnUnknownOS == null || !failOnUnknownOS.equalsIgnoreCase("false")) {
             if (UNKNOWN.equals(detectedName)) {
-                throw new MojoExecutionException("unknown os.name: " + osName);
+                throw new DetectionException("unknown os.name: " + osName);
             }
             if (UNKNOWN.equals(detectedArch)) {
-                throw new MojoExecutionException("unknown os.arch: " + osArch);
+                throw new DetectionException("unknown os.arch: " + osArch);
             }
         }
     }
 
-    private void setProperty(String name, String value) {
-        final Log log = getLog();
-        final Properties props = project.getProperties();
-
+    private void setProperty(Properties props, String name, String value) {
         props.setProperty(name, value);
         System.setProperty(name, value);
-        if (log.isInfoEnabled()) {
-            log.info(name + ": " + value);
-        }
+        logProperty(name, value);
     }
+
+    protected abstract void log(String message);
+    protected abstract void logProperty(String name, String value);
 
     private static String normalizeOs(String value) {
         value = normalize(value);
