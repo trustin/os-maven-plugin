@@ -23,6 +23,13 @@ This plugin also detects the architecture of the current operating system and no
 * `os.detected.arch`
   * `x86_64`
   * `x86_32`
+  * `itanium_64`
+  * `sparc_32`
+  * `sparc_64`
+  * `arm_32`
+  * `aarch_64`
+  * `ppc_32`
+  * `ppc_64`
 
 You can also use the `${os.detected.classifier}` property, which is a shortcut of `${os.detected.name}-${os.detected.arch}`.
 
@@ -94,3 +101,7 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
   ...
 </project>
 ```
+### Not failing the build even if OS detection failed
+
+By default, this plugin fails the build if the current OS or architecture is unknown.  Set the `${failOnUnknownOS}` property to `false` to override the default behavior.
+
