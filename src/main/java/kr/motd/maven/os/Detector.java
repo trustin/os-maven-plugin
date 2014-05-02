@@ -109,7 +109,7 @@ public abstract class Detector {
         if (value.matches("^(x8664|amd64|ia32e|em64t|x64)$")) {
             return "x86_64";
         }
-        if (value.matches("^(x8632|i[3-6]86|ia32|x32)$")) {
+        if (value.matches("^(x8632|x86|i[3-6]86|ia32|x32)$")) {
             return "x86_32";
         }
         if (value.matches("^(ia64|itanium64)$")) {
