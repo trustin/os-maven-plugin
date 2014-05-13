@@ -15,7 +15,7 @@
  */
 package kr.motd.maven.os;
 
-public class DetectionException extends Exception {
+public class DetectionException extends RuntimeException {
     public DetectionException(String message) {
         super(message);
     }
