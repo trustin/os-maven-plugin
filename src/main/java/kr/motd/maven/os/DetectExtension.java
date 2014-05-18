@@ -18,19 +18,25 @@ package kr.motd.maven.os;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Exclusion;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.ModelBase;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.InterpolationFilterReader;
+import org.eclipse.aether.RepositorySystemSession;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Collection;
-import java.util.HashMap;
+import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -48,6 +54,7 @@ import java.util.Properties;
 public class DetectExtension extends AbstractMavenLifecycleParticipant {
 
     @Requirement
+    @SuppressWarnings("UnusedDeclaration")
     private Logger logger;
 
     private final Detector detector = new Detector() {
@@ -66,34 +73,110 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        Properties props = session.getSystemProperties();
+        Properties sessionProps = session.getSystemProperties();
 
         // Detect the OS and CPU architecture.
         try {
-            detector.detect(props);
+            detector.detect(sessionProps);
         } catch (DetectionException e) {
             throw new MavenExecutionException(e.getMessage(), session.getCurrentProject().getFile());
         }
 
-        // Interpolate dependency properties again so that the new properties are considered.
-        //// Generate the dictionary.
-        Map<String, String> dict = new HashMap<String, String>();
-        dict.put(Detector.DETECTED_NAME, props.getProperty(Detector.DETECTED_NAME));
-        dict.put(Detector.DETECTED_ARCH, props.getProperty(Detector.DETECTED_ARCH));
-        dict.put(Detector.DETECTED_CLASSIFIER, props.getProperty(Detector.DETECTED_CLASSIFIER));
+        // Generate the dictionary.
+        Map<String, String> dict = new LinkedHashMap<String, String>();
+        dict.put(Detector.DETECTED_NAME, sessionProps.getProperty(Detector.DETECTED_NAME));
+        dict.put(Detector.DETECTED_ARCH, sessionProps.getProperty(Detector.DETECTED_ARCH));
+        dict.put(Detector.DETECTED_CLASSIFIER, sessionProps.getProperty(Detector.DETECTED_CLASSIFIER));
+
+        // Inject the current session.
+        injectSession(session, dict);
 
         /// Perform the interpolation for the properties of all dependencies.
         for (MavenProject p: session.getProjects()) {
-            for (Dependency d: (Collection<Dependency>) p.getDependencies()) {
-                d.setGroupId(interpolate(dict, d.getGroupId()));
-                d.setArtifactId(interpolate(dict, d.getArtifactId()));
-                d.setVersion(interpolate(dict, d.getVersion()));
-                d.setClassifier(interpolate(dict, d.getClassifier()));
-                d.setSystemPath(interpolate(dict, d.getSystemPath()));
-                for (Exclusion e: d.getExclusions()) {
-                    e.setGroupId(interpolate(dict, e.getGroupId()));
-                    e.setArtifactId(interpolate(dict, e.getArtifactId()));
+            interpolate(dict, p);
+        }
+    }
+
+    private void injectSession(MavenSession session, Map<String, String> dict) throws MavenExecutionException {
+        Properties sessionExecProps = session.getExecutionProperties();
+        sessionExecProps.put(Detector.DETECTED_NAME, dict.get(Detector.DETECTED_NAME));
+        sessionExecProps.put(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
+        sessionExecProps.put(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
+
+        injectRepositorySession(session, dict);
+    }
+
+    private void injectRepositorySession(
+            MavenSession session, Map<String, String> dict) throws MavenExecutionException {
+        // Inject repository session properties.
+        try {
+            RepositorySystemSession repoSession = session.getRepositorySession();
+            Map<String, String> repoSessionProps = repoSession.getSystemProperties();
+            try {
+                repoSessionProps.putAll(dict);
+            } catch (Exception e) {
+                // Time to hack: RepositorySystemSession.getRepositorySession() returned an immutable map.
+                Class<?> cls = session.getRepositorySession().getClass();
+                Field f = cls.getDeclaredField("systemProperties");
+                f.setAccessible(true);
+                repoSessionProps = (Map<String, String>) f.get(repoSession);
+                repoSessionProps.putAll(dict);
+            }
+        } catch (Exception e) {
+            throw new MavenExecutionException("Failed to inject repository session properties.", e);
+        }
+    }
+
+    private void interpolate(Map<String, String> dict, MavenProject p) {
+        if (p == null) {
+            return;
+        }
+
+        interpolate(dict, p.getParent());
+        interpolate(dict, p.getModel());
+        for (ModelBase model: p.getActiveProfiles()) {
+            interpolate(dict, model);
+        }
+    }
+
+    private void interpolate(Map<String, String> dict, ModelBase model) {
+        model.getProperties().putAll(dict);
+        interpolate(dict, model.getDependencies());
+
+        DependencyManagement depMgmt = model.getDependencyManagement();
+        if (depMgmt != null) {
+            interpolate(dict, depMgmt.getDependencies());
+        }
+
+        if (model instanceof Model) {
+            Build build = ((Model) model).getBuild();
+            if (build != null) {
+                for (Plugin bp: build.getPlugins()) {
+                    interpolate(dict, bp.getDependencies());
                 }
+                if (build.getPluginManagement() != null) {
+                    for (Plugin bp: build.getPluginManagement().getPlugins()) {
+                        interpolate(dict, bp.getDependencies());
+                    }
+                }
+            }
+        }
+    }
+
+    private void interpolate(Map<String, String> dict, Iterable<Dependency> dependencies) {
+        if (dependencies == null) {
+            return;
+        }
+
+        for (Dependency d: dependencies) {
+            d.setGroupId(interpolate(dict, d.getGroupId()));
+            d.setArtifactId(interpolate(dict, d.getArtifactId()));
+            d.setVersion(interpolate(dict, d.getVersion()));
+            d.setClassifier(interpolate(dict, d.getClassifier()));
+            d.setSystemPath(interpolate(dict, d.getSystemPath()));
+            for (Exclusion e: d.getExclusions()) {
+                e.setGroupId(interpolate(dict, e.getGroupId()));
+                e.setArtifactId(interpolate(dict, e.getArtifactId()));
             }
         }
     }
