@@ -123,7 +123,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
                 repoSessionProps.putAll(dict);
             }
         } catch (Exception e) {
-            throw new MavenExecutionException("Failed to inject repository session properties.", e);
+            logger.warn("Failed to inject repository session properties.", e);
         }
     }
 
