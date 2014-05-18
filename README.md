@@ -92,7 +92,7 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
 
 If you are using IntelliJ IDEA, you should not have any problem.
 
-If you are using Eclipse, you need to install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.2.0.Final.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.2.0.Final/os-maven-plugin-1.2.0.Final.jar) and put it into the `<ECLIPSE_HOME>/plugins` directory.
+If you are using Eclipse, you need to install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.2.1.Final.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.2.1.Final/os-maven-plugin-1.2.1.Final.jar) and put it into the `<ECLIPSE_HOME>/plugins` directory.
 
 (As you might have noticed, `os-maven-plugin` is a Maven extension, a Maven plugin, and an Eclipse plugin.)
 
