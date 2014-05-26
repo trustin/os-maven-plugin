@@ -103,28 +103,16 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         sessionExecProps.put(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
         sessionExecProps.put(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
 
-        injectRepositorySession(session, dict);
-    }
-
-    private void injectRepositorySession(
-            MavenSession session, Map<String, String> dict) throws MavenExecutionException {
-        // Inject repository session properties.
-        try {
-            RepositorySystemSession repoSession = session.getRepositorySession();
-            Map<String, String> repoSessionProps = repoSession.getSystemProperties();
-            try {
-                repoSessionProps.putAll(dict);
-            } catch (Exception e) {
-                // Time to hack: RepositorySystemSession.getRepositorySession() returned an immutable map.
-                Class<?> cls = session.getRepositorySession().getClass();
-                Field f = cls.getDeclaredField("systemProperties");
-                f.setAccessible(true);
-                repoSessionProps = (Map<String, String>) f.get(repoSession);
-                repoSessionProps.putAll(dict);
+        // Work around the 'NoClassDefFoundError' or 'ClassNotFoundException' related with Aether in IntelliJ IDEA.
+        for (StackTraceElement e: new Exception().getStackTrace()) {
+            if (String.valueOf(e.getClassName()).startsWith("org.jetbrains.idea.maven")) {
+                return;
             }
-        } catch (Throwable t) {
-            logger.warn("Failed to inject repository session properties.", t);
         }
+
+        // Injection of RepositorySession is done in a separate class so that the extension is not impacted by
+        // the case where the runtime does not have Aether.
+        RepositorySessionInjector.injectRepositorySession(logger, session, dict);
     }
 
     private void interpolate(Map<String, String> dict, MavenProject p) {
