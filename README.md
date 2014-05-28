@@ -44,7 +44,7 @@ Add the extension to your `pom.xml` like the following:
       <plugin>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.2.2.Final</version>
+        <version>1.2.3.Final</version>
       </extension>
     </extensions>
   </build>
@@ -92,7 +92,7 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
 
 If you are using IntelliJ IDEA, you should not have any problem.
 
-If you are using Eclipse, you need to install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.2.2.Final.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.2.2.Final/os-maven-plugin-1.2.2.Final.jar) and put it into the `<ECLIPSE_HOME>/plugins` directory.
+If you are using Eclipse, you need to install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.2.3.Final.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.2.3.Final/os-maven-plugin-1.2.3.Final.jar) and put it into the `<ECLIPSE_HOME>/plugins` directory.
 
 (As you might have noticed, `os-maven-plugin` is a Maven extension, a Maven plugin, and an Eclipse plugin.)
 
