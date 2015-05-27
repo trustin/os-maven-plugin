@@ -41,7 +41,7 @@ Add the extension to your `pom.xml` like the following:
 <project>
   <build>
     <extensions>
-      <plugin>
+      <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
         <version>1.2.3.Final</version>
