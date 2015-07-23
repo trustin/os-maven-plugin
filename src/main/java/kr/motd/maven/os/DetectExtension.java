@@ -30,12 +30,10 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.InterpolationFilterReader;
-import org.eclipse.aether.RepositorySystemSession;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -87,6 +85,11 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         dict.put(Detector.DETECTED_NAME, sessionProps.getProperty(Detector.DETECTED_NAME));
         dict.put(Detector.DETECTED_ARCH, sessionProps.getProperty(Detector.DETECTED_ARCH));
         dict.put(Detector.DETECTED_CLASSIFIER, sessionProps.getProperty(Detector.DETECTED_CLASSIFIER));
+        for (Map.Entry<Object, Object> entry : sessionProps.entrySet()) {
+            if (entry.getKey().toString().startsWith(Detector.DETECTED_LIKE_PREFIX)) {
+                dict.put(entry.getKey().toString(), entry.getValue().toString());
+            }
+        }
 
         // Inject the current session.
         injectSession(session, dict);
@@ -102,6 +105,11 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         sessionExecProps.put(Detector.DETECTED_NAME, dict.get(Detector.DETECTED_NAME));
         sessionExecProps.put(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
         sessionExecProps.put(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
+        for (Map.Entry<String, String> entry : dict.entrySet()) {
+            if (entry.getKey().startsWith(Detector.DETECTED_LIKE_PREFIX)) {
+                sessionExecProps.put(entry.getKey(), entry.getValue());
+            }
+        }
 
         // Work around the 'NoClassDefFoundError' or 'ClassNotFoundException' related with Aether in IntelliJ IDEA.
         for (StackTraceElement e: new Exception().getStackTrace()) {
@@ -183,7 +191,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
             InterpolationFilterReader reader = new InterpolationFilterReader(new StringReader(value), dict);
             StringWriter writer = new StringWriter(value.length());
             for (;;) {
-                int ch = 0;
+                int ch;
                 try {
                     ch = reader.read();
                 } catch (IOException e) {

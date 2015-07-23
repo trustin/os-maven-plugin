@@ -41,7 +41,7 @@ Add the extension to your `pom.xml` like the following:
 <project>
   <build>
     <extensions>
-      <plugin>
+      <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
         <version>1.2.3.Final</version>
@@ -87,6 +87,54 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
   </build>
 </project>
 ```
+
+### Custom classifiers for OS variants
+
+If you need to customize your deployment based on a variant of an OS, you can check the existence of `${os.detected.like.<variant>}`.
+
+The snippet below deploys an artifact with a different classifier if on an OS that is like `debian`.
+
+```xml
+<project>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <configuration>
+              <exportAntProperties>true</exportAntProperties>
+              <target>
+                <condition property="deploy.classifier"
+                           value="${os.detected.classifier}-debian"
+                           else="${os.detected.classifier}">
+                  <isset property="os.detected.like.debian"/>
+                </condition>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <configuration>
+            <classifier>${deploy.classifier}</classifier>
+          </configuration>
+        </plugin>
+    </plugins>
+  </build>
+</project>
+```
+
+For all platforms, there will be at least one property for `os.detected.like.${os.detected.name}`. On Linux,
+additional properties will be populated from the `ID` and `ID_LIKE` entries in
+[`/etc/os-release` or `/usr/lib/os-release`](http://www.freedesktop.org/software/systemd/man/os-release.html). If unavailable
+and the file `/etc/redhat-release` exists, `rhel` and `fedora` are assumed.
 
 ### Issues with Eclipse m2e or other IDEs
 
