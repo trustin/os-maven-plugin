@@ -15,16 +15,36 @@
  */
 package kr.motd.maven.os;
 
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 
 public abstract class Detector {
 
     public static final String DETECTED_NAME = "os.detected.name";
     public static final String DETECTED_ARCH = "os.detected.arch";
     public static final String DETECTED_CLASSIFIER = "os.detected.classifier";
+    public static final String DETECTED_RELEASE = "os.detected.release";
+    public static final String DETECTED_RELEASE_VERSION = DETECTED_RELEASE + ".version";
+    public static final String DETECTED_RELEASE_LIKE_PREFIX = DETECTED_RELEASE + ".like.";
 
     private static final String UNKNOWN = "unknown";
+    private static final String LINUX_ID_PREFIX = "ID=";
+    private static final String LINUX_ID_LIKE_PREFIX = "ID_LIKE=";
+    private static final String LINUX_VERSION_ID_PREFIX = "VERSION_ID=";
+    private static final String[] LINUX_OS_RELEASE_FILES = {"/etc/os-release", "/usr/lib/os-release"};
+    private static final String REDHAT_RELEASE_FILE = "/etc/redhat-release";
+    private static final String[] DEFAULT_REDHAT_VARIANTS = {"rhel", "fedora"};
 
     protected void detect(Properties props) throws DetectionException {
         log("------------------------------------------------------------------------");
@@ -52,6 +72,18 @@ public abstract class Detector {
             }
             if (UNKNOWN.equals(detectedArch)) {
                 throw new DetectionException("unknown os.arch: " + osArch);
+            }
+        }
+
+        LinuxRelease linuxRelease = "linux".equals(detectedName) ? getLinuxRelease() : null;
+        if (linuxRelease != null) {
+            setProperty(props, DETECTED_RELEASE, linuxRelease.id);
+            if (linuxRelease.version != null) {
+                setProperty(props, DETECTED_RELEASE_VERSION, linuxRelease.version);
+            }
+            for (String like : linuxRelease.like) {
+                String propKey = DETECTED_RELEASE_LIKE_PREFIX + like;
+                setProperty(props, propKey, "true");
             }
         }
     }
@@ -142,5 +174,143 @@ public abstract class Detector {
             return "";
         }
         return value.toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "");
+    }
+
+    private static LinuxRelease getLinuxRelease() {
+        // First, look for the os-release file.
+        for (String osReleaseFileName : LINUX_OS_RELEASE_FILES) {
+            File file = new File(osReleaseFileName);
+            if (file.exists()) {
+                return parseLinuxOsReleaseFile(file);
+            }
+        }
+
+        // Older versions of redhat don't have /etc/os-release. In this case, try
+        // parsing this file.
+        File file = new File(REDHAT_RELEASE_FILE);
+        if (file.exists()) {
+            return parseLinuxRedhatReleaseFile(file);
+        }
+
+        return null;
+    }
+
+    /**
+     * Parses a file in the format of {@code /etc/os-release} and return a {@link LinuxRelease}
+     * based on the {@code ID}, {@code ID_LIKE}, and {@code VERSION_ID} entries.
+     */
+    private static LinuxRelease parseLinuxOsReleaseFile(File file) {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+
+            String id = null;
+            String version = null;
+            Set<String> likeSet = new LinkedHashSet<String>();
+            String line;
+            while((line = reader.readLine()) != null) {
+                // Parse the ID line.
+                if (line.startsWith(LINUX_ID_PREFIX)) {
+                    // Set the ID for this version.
+                    id = line.substring(LINUX_ID_PREFIX.length());
+
+                    // Also add the ID to the "like" set.
+                    likeSet.add(id);
+                    continue;
+                }
+
+                // Parse the VERSION_ID line.
+                if (line.startsWith(LINUX_VERSION_ID_PREFIX)) {
+                    // Set the ID for this version.
+                    version = normalizeReleaseVersion(line.substring(LINUX_VERSION_ID_PREFIX.length()));
+                    continue;
+                }
+
+                // Parse the ID_LIKE line.
+                if (line.startsWith(LINUX_ID_LIKE_PREFIX)) {
+                    line = line.substring(LINUX_ID_LIKE_PREFIX.length());
+
+                    // Split the line on any whitespace.
+                    String[] parts =  line.split("\\s+");
+                    Collections.addAll(likeSet, parts);
+                }
+            }
+
+            if (id != null) {
+                return new LinuxRelease(id, version, likeSet);
+            }
+        } catch (IOException ignored) {
+            // Just absorb. Don't treat failure to read /etc/os-release as an error.
+        } finally {
+            closeQuietly(reader);
+        }
+        return null;
+    }
+
+    /**
+     * Parses the {@code /etc/redhat-release} and returns a {@link LinuxRelease} containing the
+     * ID and like ["rhel", "fedora", ID]. Currently only supported for CentOS, Fedora, and RHEL.
+     * Other variants will return {@code null}.
+     */
+    private static LinuxRelease parseLinuxRedhatReleaseFile(File file) {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+
+            // There is only a single line in this file.
+            String line = reader.readLine();
+            if (line != null) {
+                line = line.toLowerCase(Locale.US);
+
+                String id;
+                if (line.contains("centos")) {
+                    id = "centos";
+                } else if (line.contains("fedora")) {
+                    id = "fedora";
+                } else if (line.contains("red hat enterprise linux")) {
+                    id = "rhel";
+                } else {
+                    // Other variants are not currently supported.
+                    return null;
+                }
+
+                Set<String> likeSet = new LinkedHashSet<String>();
+                likeSet.addAll(Arrays.asList(DEFAULT_REDHAT_VARIANTS));
+                likeSet.add(id);
+
+                return new LinuxRelease(id, null, likeSet);
+            }
+        } catch (IOException ignored) {
+            // Just absorb. Don't treat failure to read /etc/os-release as an error.
+        } finally {
+            closeQuietly(reader);
+        }
+        return null;
+    }
+
+    private static String normalizeReleaseVersion(String version) {
+        return version.trim().replace("\"", "");
+    }
+
+    private static void closeQuietly(Closeable obj) {
+        try {
+            if (obj != null) {
+                obj.close();
+            }
+        } catch (IOException ignored) {
+            // Ignore.
+        }
+    }
+
+    private static class LinuxRelease {
+        final String id;
+        final String version;
+        final Collection<String> like;
+
+        LinuxRelease(String id, String version, Set<String> like) {
+            this.id = id;
+            this.version = version;
+            this.like = Collections.unmodifiableCollection(like);
+        }
     }
 }
