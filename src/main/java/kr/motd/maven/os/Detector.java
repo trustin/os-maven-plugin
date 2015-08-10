@@ -70,6 +70,7 @@ public abstract class Detector {
             }
         }
 
+        // Add properties for all variants that this OS is "like"
         for (String like : getOsLike(detectedName)) {
             String propKey = DETECTED_LIKE_PREFIX + like;
             setProperty(props, propKey, "true");
@@ -165,11 +166,15 @@ public abstract class Detector {
     }
 
     /**
-     * Gets a collection of OSes that the given detected OS is "like". The {@code detectedName} will
-     * always appear in the collection.
+     * Gets a collection of OSes that the given detected OS is "like".
      */
     private static Collection<String> getOsLike(String detectedName) {
         Set<String> like = new LinkedHashSet<String>();
+        if (!"linux".equals(detectedName)) {
+            // Currently only Linux is supported.
+            return like;
+        }
+
         for (String osReleaseFileName : OS_RELEASE_FILES) {
             File file = new File(osReleaseFileName);
             if (file.exists()) {
@@ -184,9 +189,6 @@ public abstract class Detector {
             like.add("rhel");
             like.add("fedora");
         }
-
-        // Always add the detected name as well.
-        like.add(detectedName);
 
         return like;
     }

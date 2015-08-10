@@ -88,9 +88,9 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
 </project>
 ```
 
-### Custom classifiers for OS variants
+### Custom classifiers for Linux variants
 
-If you need to customize your deployment based on a variant of an OS, you can check the existence of `${os.detected.like.<variant>}`.
+If you need to customize your deployment based on a variant of Linux, you can check the existence of `${os.detected.like.<variant>}`.
 
 The snippet below deploys an artifact with a different classifier if on an OS that is like `debian`.
 
@@ -131,8 +131,7 @@ The snippet below deploys an artifact with a different classifier if on an OS th
 </project>
 ```
 
-For all platforms, there will be at least one property for `os.detected.like.${os.detected.name}`. On Linux,
-additional properties will be populated from the `ID` and `ID_LIKE` entries in
+These properties are only available for Linux, and are populated from the `ID` and `ID_LIKE` entries in
 [`/etc/os-release` or `/usr/lib/os-release`](http://www.freedesktop.org/software/systemd/man/os-release.html). If unavailable
 and the file `/etc/redhat-release` exists, `rhel` and `fedora` are assumed.
 
