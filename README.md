@@ -41,7 +41,7 @@ Add the extension to your `pom.xml` like the following:
 <project>
   <build>
     <extensions>
-      <plugin>
+      <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
         <version>1.2.3.Final</version>
@@ -87,6 +87,66 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
   </build>
 </project>
 ```
+
+### Custom classifiers for specific releases of Linux
+
+If you need to customize your deployment based on a specific release of Linux, a few other variables may
+be made available.
+
+* `${os.detected.release}`: provides the ID for the linux release.
+* `${os.detected.release.version}`: provides version ID for this linux release. Only available if
+`${os.detected.release}` is also available.
+* `${os.detected.release.like.<variant>}`: Identifies a linux release that this release is
+"like" (for example, `ubuntu` is "like" `debian`). Only available if `${os.detected.release}` is also
+available. An entry will always be made for `os.detected.release.like.${os.detected.release}`.
+
+The snippet below deploys an artifact with a different classifier if on an OS that is "like" `debian`.
+
+```xml
+<project>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <configuration>
+              <exportAntProperties>true</exportAntProperties>
+              <target>
+                <condition property="deploy.classifier"
+                           value="${os.detected.classifier}-debian"
+                           else="${os.detected.classifier}">
+                  <isset property="os.detected.release.debian"/>
+                </condition>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <configuration>
+            <classifier>${deploy.classifier}</classifier>
+          </configuration>
+        </plugin>
+    </plugins>
+  </build>
+</project>
+```
+
+For most Linux distributions, these values are populated from the `ID`, `ID_LIKE`, and `VERSION_ID`
+entries in [`/etc/os-release` or `/usr/lib/os-release`](http://www.freedesktop.org/software/systemd/man/os-release.html).
+
+If these files are unavailable, then `/etc/redhat-release` is inspected. If it contains `CentOS`,
+`Fedora`, or `Redhat Enterprise Linux` then `${os.detected.release}` will be set to `centos`,
+`fedora`, or `rhel` respectively (other variants are unsupported). "Like" entries will be created
+for `${os.detected.release}` as well as `rhel` and `fedora`. The `${os.detected.release.version}`
+variable is currently not set.
 
 ### Issues with Eclipse m2e or other IDEs
 
