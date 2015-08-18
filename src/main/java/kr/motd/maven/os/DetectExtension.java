@@ -86,7 +86,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         dict.put(Detector.DETECTED_ARCH, sessionProps.getProperty(Detector.DETECTED_ARCH));
         dict.put(Detector.DETECTED_CLASSIFIER, sessionProps.getProperty(Detector.DETECTED_CLASSIFIER));
         for (Map.Entry<Object, Object> entry : sessionProps.entrySet()) {
-            if (entry.getKey().toString().startsWith(Detector.DETECTED_LIKE_PREFIX)) {
+            if (entry.getKey().toString().startsWith(Detector.DETECTED_RELEASE)) {
                 dict.put(entry.getKey().toString(), entry.getValue().toString());
             }
         }
@@ -106,7 +106,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         sessionExecProps.put(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
         sessionExecProps.put(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
         for (Map.Entry<String, String> entry : dict.entrySet()) {
-            if (entry.getKey().startsWith(Detector.DETECTED_LIKE_PREFIX)) {
+            if (entry.getKey().startsWith(Detector.DETECTED_RELEASE)) {
                 sessionExecProps.put(entry.getKey(), entry.getValue());
             }
         }
