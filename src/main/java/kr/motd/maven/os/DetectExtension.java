@@ -100,14 +100,14 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private void injectSession(MavenSession session, Map<String, String> dict) throws MavenExecutionException {
+    private void injectSession(MavenSession session, Map<String, String> dict) {
         Properties sessionExecProps = session.getExecutionProperties();
-        sessionExecProps.put(Detector.DETECTED_NAME, dict.get(Detector.DETECTED_NAME));
-        sessionExecProps.put(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
-        sessionExecProps.put(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
+        sessionExecProps.setProperty(Detector.DETECTED_NAME, dict.get(Detector.DETECTED_NAME));
+        sessionExecProps.setProperty(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
+        sessionExecProps.setProperty(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
         for (Map.Entry<String, String> entry : dict.entrySet()) {
             if (entry.getKey().startsWith(Detector.DETECTED_RELEASE)) {
-                sessionExecProps.put(entry.getKey(), entry.getValue());
+                sessionExecProps.setProperty(entry.getKey(), entry.getValue());
             }
         }
 
@@ -123,7 +123,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         RepositorySessionInjector.injectRepositorySession(logger, session, dict);
     }
 
-    private void interpolate(Map<String, String> dict, MavenProject p) {
+    private static void interpolate(Map<String, String> dict, MavenProject p) {
         if (p == null) {
             return;
         }
@@ -135,7 +135,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private void interpolate(Map<String, String> dict, ModelBase model) {
+    private static void interpolate(Map<String, String> dict, ModelBase model) {
         model.getProperties().putAll(dict);
         interpolate(dict, model.getDependencies());
 
@@ -159,7 +159,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private void interpolate(Map<String, String> dict, Iterable<Dependency> dependencies) {
+    private static void interpolate(Map<String, String> dict, Iterable<Dependency> dependencies) {
         if (dependencies == null) {
             return;
         }

@@ -1,6 +1,7 @@
 package kr.motd.maven.os;
 
 import org.eclipse.core.runtime.ILog;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IStartup;
@@ -23,11 +24,11 @@ public class EclipseStartup extends Detector implements IStartup {
 
     @Override
     protected void log(String message) {
-        logger.log(new Status(Status.INFO, ID, message));
+        logger.log(new Status(IStatus.INFO, ID, message));
     }
 
     @Override
     protected void logProperty(String name, String value) {
-        logger.log(new Status(Status.INFO, ID, name + ": " + value));
+        logger.log(new Status(IStatus.INFO, ID, name + ": " + value));
     }
 }

@@ -36,8 +36,6 @@ import org.apache.maven.project.MavenProject;
 @Mojo(name = "detect", defaultPhase = LifecyclePhase.VALIDATE)
 public class DetectMojo extends AbstractMojo {
 
-    private static final String UNKNOWN = "unknown";
-
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
 
@@ -56,6 +54,7 @@ public class DetectMojo extends AbstractMojo {
         }
     };
 
+    @Override
     public void execute() throws MojoExecutionException {
         try {
             detector.detect(project.getProperties());

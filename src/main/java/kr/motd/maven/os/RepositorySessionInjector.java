@@ -1,17 +1,16 @@
 package kr.motd.maven.os;
 
-import org.apache.maven.MavenExecutionException;
+import java.lang.reflect.Field;
+import java.util.Map;
+
 import org.apache.maven.execution.MavenSession;
 import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.RepositorySystemSession;
 
-import java.lang.reflect.Field;
-import java.util.Map;
-
 final class RepositorySessionInjector {
     @SuppressWarnings("unchecked")
     static void injectRepositorySession(
-            Logger logger, MavenSession session, Map<String, String> dict) throws MavenExecutionException {
+            Logger logger, MavenSession session, Map<String, String> dict) {
         // Inject repository session properties.
         try {
             RepositorySystemSession repoSession = session.getRepositorySession();
@@ -30,4 +29,6 @@ final class RepositorySessionInjector {
             logger.warn("Failed to inject repository session properties.", t);
         }
     }
+
+    private RepositorySessionInjector() {}
 }

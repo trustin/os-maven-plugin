@@ -16,6 +16,8 @@
 package kr.motd.maven.os;
 
 public class DetectionException extends RuntimeException {
+    private static final long serialVersionUID = 7787197994442254320L;
+
     public DetectionException(String message) {
         super(message);
     }

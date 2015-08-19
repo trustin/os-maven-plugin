@@ -46,12 +46,12 @@ public abstract class Detector {
     private static final String REDHAT_RELEASE_FILE = "/etc/redhat-release";
     private static final String[] DEFAULT_REDHAT_VARIANTS = {"rhel", "fedora"};
 
-    protected void detect(Properties props) throws DetectionException {
+    protected void detect(Properties props) {
         log("------------------------------------------------------------------------");
         log("Detecting the operating system and CPU architecture");
         log("------------------------------------------------------------------------");
 
-        Properties allProps = new Properties(System.getProperties());
+        final Properties allProps = new Properties(System.getProperties());
         allProps.putAll(props);
 
         final String osName = allProps.getProperty("os.name");
@@ -66,7 +66,7 @@ public abstract class Detector {
         setProperty(props, DETECTED_CLASSIFIER, detectedClassifier);
 
         final String failOnUnknownOS = allProps.getProperty("failOnUnknownOS");
-        if (failOnUnknownOS == null || !failOnUnknownOS.equalsIgnoreCase("false")) {
+        if (!"false".equalsIgnoreCase(failOnUnknownOS)) {
             if (UNKNOWN.equals(detectedName)) {
                 throw new DetectionException("unknown os.name: " + osName);
             }
@@ -156,13 +156,13 @@ public abstract class Detector {
         if (value.matches("^(arm|arm32)$")) {
             return "arm_32";
         }
-        if (value.equals("aarch64")) {
+        if ("aarch64".equals(value)) {
             return "aarch_64";
         }
         if (value.matches("^(ppc|ppc32)$")) {
             return "ppc_32";
         }
-        if (value.equals("ppc64")) {
+        if ("ppc64".equals(value)) {
             return "ppc_64";
         }
 
