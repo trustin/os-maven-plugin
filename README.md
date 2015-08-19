@@ -30,6 +30,9 @@
   * `aarch_64`
   * `ppc_32`
   * `ppc_64`
+  * `ppcle_64`
+  * `s390_32`
+  * `s390_64`
 
 You can also use the `${os.detected.classifier}` property, which is a shortcut of `${os.detected.name}-${os.detected.arch}`.
 
