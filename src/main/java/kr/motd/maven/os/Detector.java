@@ -165,6 +165,15 @@ public abstract class Detector {
         if ("ppc64".equals(value)) {
             return "ppc_64";
         }
+        if ("ppc64le".equals(value)) {
+            return "ppcle_64";
+        }
+        if ("s390".equals(value)) {
+            return "s390_32";
+        }
+        if ("s390x".equals(value)) {
+            return "s390_64";
+        }
 
         return UNKNOWN;
     }
