@@ -159,6 +159,12 @@ deploy.classifier = ${deploy.classifier}
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <classifier>${deploy.classifier}</classifier>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
