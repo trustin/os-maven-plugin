@@ -47,7 +47,7 @@ Add the extension to your `pom.xml` like the following:
       <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.2.3.Final</version>
+        <version>1.3.1.Final-SNAPSHOT</version>
       </extension>
     </extensions>
   </build>
@@ -112,17 +112,45 @@ The snippet below deploys an artifact with a different classifier if on an OS th
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
         <executions>
           <execution>
+            <id>run</id>
             <phase>initialize</phase>
             <configuration>
               <exportAntProperties>true</exportAntProperties>
               <target>
                 <condition property="deploy.classifier"
                            value="${os.detected.classifier}-debian"
-                           else="${os.detected.classifier}">
-                  <isset property="os.detected.release.debian"/>
+                           >
+                  <isset property="os.detected.release.like.debian"/>
                 </condition>
+                <condition property="deploy.classifier"
+                           value="${os.detected.classifier}-rhel"
+                           >
+                  <isset property="os.detected.release.like.rhel"/>
+                </condition>
+                <condition property="deploy.classifier"
+                           value="${os.detected.classifier}-fedora"
+                           else="${os.detected.classifier}">
+                  <isset property="os.detected.release.like.fedora"/>
+                </condition>
+                <echo level="info">
+os.name = ${os.name}
+os.arch = ${os.arch}
+os.detected.name = ${os.detected.name}
+os.detected.arch = ${os.detected.arch}
+
+os.detected.release = ${os.detected.release}
+os.detected.release.version = ${os.detected.release.version}
+
+os.detected.classifier = ${os.detected.classifier}
+os.detected.release = ${os.detected.release}
+os.detected.release.like.debian = ${os.detected.release.like.debian}
+os.detected.release.like.fedora = ${os.detected.release.like.fedora}
+os.detected.release.like.rhel = ${os.detected.release.like.rhel}
+deploy.classifier = ${deploy.classifier}
+</echo>
               </target>
             </configuration>
             <goals>
@@ -131,12 +159,6 @@ The snippet below deploys an artifact with a different classifier if on an OS th
           </execution>
         </executions>
       </plugin>
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-            <classifier>${deploy.classifier}</classifier>
-          </configuration>
-        </plugin>
     </plugins>
   </build>
 </project>
