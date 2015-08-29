@@ -52,8 +52,11 @@ Add the extension to your `pom.xml` like the following:
     </extensions>
   </build>
 </project>
-
 ```
+
+### Using Gradle
+
+Use [the plugin from Google](https://github.com/google/osdetector-gradle-plugin).
 
 ### Adding a platform-dependent dependency
 
