@@ -54,7 +54,7 @@ Add the extension to your `pom.xml` like the following:
 </project>
 ```
 
-### Using Gradle
+### Using Gradle?
 
 Use [the plugin from Google](https://github.com/google/osdetector-gradle-plugin).
 
