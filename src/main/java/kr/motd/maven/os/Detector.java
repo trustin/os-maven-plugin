@@ -48,8 +48,6 @@ public abstract class Detector {
     private static final String[] DEFAULT_REDHAT_VARIANTS = {"rhel", "fedora"};
 
     protected void detect(Properties props, List<String> classifierWithLikes) {
-        new Exception("NM: classifierWithLikes: " + classifierWithLikes).printStackTrace();
-
         log("------------------------------------------------------------------------");
         log("Detecting the operating system and CPU architecture");
         log("------------------------------------------------------------------------");
