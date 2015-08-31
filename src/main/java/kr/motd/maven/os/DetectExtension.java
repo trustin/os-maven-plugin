@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -45,7 +46,17 @@ import java.util.Properties;
  * <li>{@code os.detected.name} - normalized {@code os.name} (e.g. {@code linux}, {@code osx})</li>
  * <li>{@code os.detected.arch} - normalized {@code os.arch} (e.g. {@code x86_64}, {@code x86_32})</li>
  * <li>{@code os.detected.classifier} - a shortcut for {@code 'os.detectedName'.'os.detectedArch'}
- *     (e.g. {@code linux-x86_64})</li>
+ *     (e.g. {@code linux-x86_64}). If the property {@code ${os.detection.classifierWithLikes}} is set,
+ *     the first value for which a corresponding {@code os.detected.release.like.{variant}} property
+ *     exists will be appended to the classifier (e.g. building on ubuntu with
+ *     {@code os.detection.classifierWithLikes = "debian,rhel"} would result in
+ *     {@code os.detected.classifier = "linux-x86_64-debian"}).</li>
+ * <li>{@code os.detected.release} - provides the ID for the linux release (if available).</li>
+ * <li>{@code os.detected.release.version} - provides version ID for this linux release. Only
+ *     available if ${os.detected.release} is also available. </li>
+ * <li>{@code os.detected.release.like.{variant}} - Identifies a linux release that this release is
+ *     "like" (for example, ubuntu is "like" debian). Only available if ${os.detected.release} is also
+ *     available. An entry will always be made for os.detected.release.like.${os.detected.release}. </li>
  * </ul>
  */
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "detect-os")
@@ -71,11 +82,12 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        Properties sessionProps = session.getSystemProperties();
-
         // Detect the OS and CPU architecture.
+        Properties sessionProps = new Properties();
+        sessionProps.putAll(session.getSystemProperties());
+        sessionProps.putAll(session.getUserProperties());
         try {
-            detector.detect(sessionProps);
+            detector.detect(sessionProps, getClassifierWithLikes(session));
         } catch (DetectionException e) {
             throw new MavenExecutionException(e.getMessage(), session.getCurrentProject().getFile());
         }
@@ -100,8 +112,21 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
+    /**
+     * Inspects the session's user and project properties for the {@link
+     * DetectMojo#CLASSIFIER_WITH_LIKES_PROPERTY} and separates the property into a list.
+     */
+    private static List<String> getClassifierWithLikes(MavenSession session) {
+        // Check to see if the project defined the
+        Properties props = new Properties();
+        props.putAll(session.getUserProperties());
+        props.putAll(session.getCurrentProject().getProperties());
+        return DetectMojo.getClassifierWithLikes(
+            props.getProperty(DetectMojo.CLASSIFIER_WITH_LIKES_PROPERTY));
+    }
+
     private void injectSession(MavenSession session, Map<String, String> dict) {
-        Properties sessionExecProps = session.getExecutionProperties();
+        Properties sessionExecProps = session.getSystemProperties();
         sessionExecProps.setProperty(Detector.DETECTED_NAME, dict.get(Detector.DETECTED_NAME));
         sessionExecProps.setProperty(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
         sessionExecProps.setProperty(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
