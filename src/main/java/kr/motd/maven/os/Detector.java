@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
@@ -46,7 +47,9 @@ public abstract class Detector {
     private static final String REDHAT_RELEASE_FILE = "/etc/redhat-release";
     private static final String[] DEFAULT_REDHAT_VARIANTS = {"rhel", "fedora"};
 
-    protected void detect(Properties props) {
+    protected void detect(Properties props, List<String> classifierWithLikes) {
+        new Exception("NM: classifierWithLikes: " + classifierWithLikes).printStackTrace();
+
         log("------------------------------------------------------------------------");
         log("Detecting the operating system and CPU architecture");
         log("------------------------------------------------------------------------");
@@ -59,11 +62,9 @@ public abstract class Detector {
 
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
-        final String detectedClassifier = detectedName + '-' + detectedArch;
 
         setProperty(props, DETECTED_NAME, detectedName);
         setProperty(props, DETECTED_ARCH, detectedArch);
-        setProperty(props, DETECTED_CLASSIFIER, detectedClassifier);
 
         final String failOnUnknownOS = allProps.getProperty("failOnUnknownOS");
         if (!"false".equalsIgnoreCase(failOnUnknownOS)) {
@@ -75,17 +76,34 @@ public abstract class Detector {
             }
         }
 
+        // Assume the default classifier, without any os "like" extension.
+        String detectedClassifier = detectedName + '-' + detectedArch;
+
+        // For Linux systems, add additional properties regarding details of the OS.
         LinuxRelease linuxRelease = "linux".equals(detectedName) ? getLinuxRelease() : null;
         if (linuxRelease != null) {
             setProperty(props, DETECTED_RELEASE, linuxRelease.id);
             if (linuxRelease.version != null) {
                 setProperty(props, DETECTED_RELEASE_VERSION, linuxRelease.version);
             }
+
+            // Add properties for all systems that this OS is "like".
             for (String like : linuxRelease.like) {
                 String propKey = DETECTED_RELEASE_LIKE_PREFIX + like;
                 setProperty(props, propKey, "true");
             }
+
+            // If any of the requested classifier likes are found in the "likes" for this system,
+            // append it to the classifier.
+            for (String classifierLike : classifierWithLikes) {
+                if (linuxRelease.like.contains(classifierLike)) {
+                    detectedClassifier += "-" + classifierLike;
+                    // First one wins.
+                    break;
+                }
+            }
         }
+        setProperty(props, DETECTED_CLASSIFIER, detectedClassifier);
     }
 
     private void setProperty(Properties props, String name, String value) {

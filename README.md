@@ -91,7 +91,7 @@ Use `${os.detected.classifier}` as the classifier of the produced JAR:
 </project>
 ```
 
-### Custom classifiers for specific releases of Linux
+### Customized deployments for specific releases of Linux
 
 If you need to customize your deployment based on a specific release of Linux, a few other variables may
 be made available.
@@ -103,53 +103,45 @@ be made available.
 "like" (for example, `ubuntu` is "like" `debian`). Only available if `${os.detected.release}` is also
 available. An entry will always be made for `os.detected.release.like.${os.detected.release}`.
 
-The snippet below deploys an artifact with a different classifier if on an OS that is "like" `debian`.
-
-```xml
-<project>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>initialize</phase>
-            <configuration>
-              <exportAntProperties>true</exportAntProperties>
-              <target>
-                <condition property="deploy.classifier"
-                           value="${os.detected.classifier}-debian"
-                           else="${os.detected.classifier}">
-                  <isset property="os.detected.release.debian"/>
-                </condition>
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-            <classifier>${deploy.classifier}</classifier>
-          </configuration>
-        </plugin>
-    </plugins>
-  </build>
-</project>
-```
-
 For most Linux distributions, these values are populated from the `ID`, `ID_LIKE`, and `VERSION_ID`
 entries in [`/etc/os-release` or `/usr/lib/os-release`](http://www.freedesktop.org/software/systemd/man/os-release.html).
 
-If these files are unavailable, then `/etc/redhat-release` is inspected. If it contains `CentOS`,
-`Fedora`, or `Redhat Enterprise Linux` then `${os.detected.release}` will be set to `centos`,
-`fedora`, or `rhel` respectively (other variants are unsupported). "Like" entries will be created
-for `${os.detected.release}` as well as `rhel` and `fedora`. The `${os.detected.release.version}`
+#### Older variants of Red Hat
+
+If `/etc/os-release` and `/usr/lib/os-release` are unavailable, then `/etc/redhat-release` is inspected.
+If it contains `CentOS`, `Fedora`, or `Redhat Enterprise Linux` then `${os.detected.release}` will be
+set to `centos`, `fedora`, or `rhel` respectively (other variants are unsupported). "Like" entries will
+be created for `${os.detected.release}` as well as `rhel` and `fedora`. The `${os.detected.release.version}`
 variable is currently not set.
+
+#### Customizing the classifier
+
+You can configure the `os-maven-plugin` to automatically append a particular "like" value to
+`${os.detected.classifier}`. This greatly simplifies the deployment for artifacts that are
+different across Linux distributions. The plugin looks for a property named
+`os.detection.classifierWithLikes`, which is a comma-separated list of "like" values. The first
+value found which matches an existing `${os.detected.release.like.<variant>}` property
+will be automatically appended to the classifier.
+
+```xml
+<project>
+  <properties>
+    <os.detection.classifierWithLikes>debian,rhel</os.detection.classifierWithLikes>
+  </properties>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.2.3.Final</version>
+      </extension>
+    </extensions>
+  </build>
+</project>
+```
+This will result in a `${os.detected.classifier}` of `linux-<arch>-debian` on debian-like systems,
+`linux-<arch>-rhel` on rhel systems, and the default of `<os>-<arch>` on everything else.
 
 ### Issues with Eclipse m2e or other IDEs
 

@@ -3,6 +3,6 @@
 <plugin>
   <extension point="org.eclipse.ui.startup">
     <startup class="kr.motd.maven.os.EclipseStartup"/>
-   </extension>
+  </extension>
 </plugin>
 
