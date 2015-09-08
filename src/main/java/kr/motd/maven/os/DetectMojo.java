@@ -79,7 +79,7 @@ public class DetectMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         try {
-            detector.detect(System.getProperties(), getClassifierWithLikes(classifierWithLikes));
+            detector.detect(project.getProperties(), getClassifierWithLikes(classifierWithLikes));
         } catch (DetectionException e) {
             throw new MojoExecutionException(e.getMessage());
         }
