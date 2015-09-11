@@ -55,6 +55,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
   </properties>
 
   <dependencies>
