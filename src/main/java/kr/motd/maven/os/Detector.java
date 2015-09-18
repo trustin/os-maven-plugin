@@ -221,7 +221,7 @@ public abstract class Detector {
                 // Parse the ID line.
                 if (line.startsWith(LINUX_ID_PREFIX)) {
                     // Set the ID for this version.
-                    id = line.substring(LINUX_ID_PREFIX.length());
+                    id = normalizeOsReleaseValue(line.substring(LINUX_ID_PREFIX.length()));
 
                     // Also add the ID to the "like" set.
                     likeSet.add(id);
@@ -231,13 +231,13 @@ public abstract class Detector {
                 // Parse the VERSION_ID line.
                 if (line.startsWith(LINUX_VERSION_ID_PREFIX)) {
                     // Set the ID for this version.
-                    version = normalizeReleaseVersion(line.substring(LINUX_VERSION_ID_PREFIX.length()));
+                    version = normalizeOsReleaseValue(line.substring(LINUX_VERSION_ID_PREFIX.length()));
                     continue;
                 }
 
                 // Parse the ID_LIKE line.
                 if (line.startsWith(LINUX_ID_LIKE_PREFIX)) {
-                    line = line.substring(LINUX_ID_LIKE_PREFIX.length());
+                    line = normalizeOsReleaseValue(line.substring(LINUX_ID_LIKE_PREFIX.length()));
 
                     // Split the line on any whitespace.
                     String[] parts =  line.split("\\s+");
@@ -297,8 +297,9 @@ public abstract class Detector {
         return null;
     }
 
-    private static String normalizeReleaseVersion(String version) {
-        return version.trim().replace("\"", "");
+    private static String normalizeOsReleaseValue(String value) {
+        // Remove any quotes from the string.
+        return value.trim().replace("\"", "");
     }
 
     private static void closeQuietly(Closeable obj) {
