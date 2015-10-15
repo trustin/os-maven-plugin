@@ -29,11 +29,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class Detector {
 
     public static final String DETECTED_NAME = "os.detected.name";
     public static final String DETECTED_ARCH = "os.detected.arch";
+    public static final String DETECTED_VERSION = "os.detected.version";
+    public static final String DETECTED_VERSION_MAJOR = DETECTED_VERSION + ".major";
+    public static final String DETECTED_VERSION_MINOR = DETECTED_VERSION + ".minor";
     public static final String DETECTED_CLASSIFIER = "os.detected.classifier";
     public static final String DETECTED_RELEASE = "os.detected.release";
     public static final String DETECTED_RELEASE_VERSION = DETECTED_RELEASE + ".version";
@@ -47,6 +52,8 @@ public abstract class Detector {
     private static final String REDHAT_RELEASE_FILE = "/etc/redhat-release";
     private static final String[] DEFAULT_REDHAT_VARIANTS = {"rhel", "fedora"};
 
+    private static final Pattern VERSION_REGEX = Pattern.compile("((\\d+)\\.(\\d+)).*");
+
     protected void detect(Properties props, List<String> classifierWithLikes) {
         log("------------------------------------------------------------------------");
         log("Detecting the operating system and CPU architecture");
@@ -57,12 +64,20 @@ public abstract class Detector {
 
         final String osName = allProps.getProperty("os.name");
         final String osArch = allProps.getProperty("os.arch");
+        final String osVersion = allProps.getProperty("os.version");
 
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
 
         setProperty(props, DETECTED_NAME, detectedName);
         setProperty(props, DETECTED_ARCH, detectedArch);
+
+        Matcher versionMatcher = VERSION_REGEX.matcher(osVersion);
+        if (versionMatcher.matches()) {
+            setProperty(props, DETECTED_VERSION, versionMatcher.group(1));
+            setProperty(props, DETECTED_VERSION_MAJOR, versionMatcher.group(2));
+            setProperty(props, DETECTED_VERSION_MINOR, versionMatcher.group(3));
+        }
 
         final String failOnUnknownOS = allProps.getProperty("failOnUnknownOS");
         if (!"false".equalsIgnoreCase(failOnUnknownOS)) {
