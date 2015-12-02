@@ -45,6 +45,9 @@ import java.util.Properties;
  * <ul>
  * <li>{@code os.detected.name} - normalized {@code os.name} (e.g. {@code linux}, {@code osx})</li>
  * <li>{@code os.detected.arch} - normalized {@code os.arch} (e.g. {@code x86_64}, {@code x86_32})</li>
+ * <li>{@code os.detected.version} - {@code os.detected.version.major}.{@code os.detected.version.minor}</li>
+ * <li>{@code os.detected.version.major} - major part of {@code os.version} (integer value)</li>
+ * <li>{@code os.detected.version.minor} - minor part of {@code os.version} (integer value)</li>
  * <li>{@code os.detected.classifier} - a shortcut for {@code 'os.detectedName'.'os.detectedArch'}
  *     (e.g. {@code linux-x86_64}). If the property {@code ${os.detection.classifierWithLikes}} is set,
  *     the first value for which a corresponding {@code os.detected.release.like.{variant}} property

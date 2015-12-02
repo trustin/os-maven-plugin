@@ -34,6 +34,11 @@
   * `s390_32`
   * `s390_64`
 
+* `os.detected.version.*`
+  Operating system dependent version number that may indicate the kernel or OS release version.
+  * `os.detected.version.major`
+  * `os.detected.version.minor`
+
 You can also use the `${os.detected.classifier}` property, which is a shortcut of `${os.detected.name}-${os.detected.arch}`.
 
 ### Enabling `os-maven-plugin` on your Maven project
