@@ -303,8 +303,14 @@ public abstract class Detector {
                 line = line.toLowerCase(Locale.US);
 
                 String id;
+                String version = null;
                 if (line.contains("centos")) {
                     id = "centos";
+
+                    Matcher versionMatcher = VERSION_REGEX.matcher(line);
+                    if (versionMatcher.find()) {
+                        version = versionMatcher.group(2);
+                    }
                 } else if (line.contains("fedora")) {
                     id = "fedora";
                 } else if (line.contains("red hat enterprise linux")) {
@@ -318,7 +324,7 @@ public abstract class Detector {
                 likeSet.addAll(Arrays.asList(DEFAULT_REDHAT_VARIANTS));
                 likeSet.add(id);
 
-                return new LinuxRelease(id, null, likeSet);
+                return new LinuxRelease(id, version, likeSet);
             }
         } catch (IOException ignored) {
             // Just absorb. Don't treat failure to read /etc/os-release as an error.
