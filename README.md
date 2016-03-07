@@ -4,40 +4,51 @@
 
 ### Generated properties
 
-`os-maven-plugin` detects the name of the current operating system and normalizes it into more generic one.
+`os-maven-plugin` detects the information about the current operating system and normalize it into more portable one.
 
-* `os.detected.name`
-  * `aix`
-  * `hpux`
-  * `os400`
-  * `linux`
-  * `osx`
-  * `freebsd`
-  * `openbsd`
-  * `netbsd`
-  * `sunos`
-  * `windows`
+#### `os.detected.name`
 
-`os-maven-plugin` also detects the architecture of the current operating system and normalizes it into more generic one.
+`os.detected.name` is set to one of the following values, based on the lower-cased value of the `os.name` Java system property, whose non-alphanumeric characters are stripped out. e.g. `OS_400` -> `os400`
 
-* `os.detected.arch`
-  * `x86_64`
-  * `x86_32`
-  * `itanium_64`
-  * `sparc_32`
-  * `sparc_64`
-  * `arm_32`
-  * `aarch_64`
-  * `ppc_32`
-  * `ppc_64`
-  * `ppcle_64`
-  * `s390_32`
-  * `s390_64`
+* `aix` - if the value starts with `aix`
+* `hpux` - if the value starts with `hpux`
+* `os400` - if the value starts with `os400` and its following character is *not* a digit (e.g. `os4000`)
+* `linux` - if the value starts with `linux`
+* `osx` - if the value starts with `macosx` or `osx`
+* `freebsd` - if the value starts with `freebsd`
+* `openbsd` - if the value starts with `openbsd`
+* `netbsd` - if the value starts with `netbsd`
+* `sunos` - if the value starts with `solaris` or `sunos`
+* `windows` - if the value starts with `windows`
 
-* `os.detected.version.*`
-  Operating system dependent version number that may indicate the kernel or OS release version.
-  * `os.detected.version.major`
-  * `os.detected.version.minor`
+#### `os.detected.arch`
+
+`os.detected.arch` is set to one of the following values, based on the lower-cased value of the `os.arch` Java system property, whose non-alphanumeric characters are stripped out. e.g. `x86_64` -> `x8664`
+
+* `x86_64` - if the value is one of: `x8664`, `amd64`, `ia32e`, `em64t`, `x64`
+* `x86_32` - if the value is one of: `x8632`, `x86`, `i386`, `i486`, `i586`, `i686`, `ia32`, `x32`
+* `itanium_64` - if the value is one of: `ia64`, `itanium64`
+* `sparc_32` - if the value is one of: `sparc', `sparc32`
+* `sparc_64` - if the value is one of: `sparcv9`, `sparc64`
+* `arm_32` - if the value is one of: `arm`, `arm32`
+* `aarch_64` - if the value is `aarch64`
+* `ppc_32` - if the value is one of: `ppc`, `ppc32`
+* `ppc_64` - if the value is `ppc64`
+* `ppcle_64` - if the value is `ppc64le`
+* `s390_32` - if the value is `s390`
+* `s390_64` if the value is `s390x`
+
+#### `os.detected.version.*`
+
+`os.detected.version` and its sub-properties are operation system dependent version number that may indicate the kernel or OS release version. They are generated from the `os.version` Java system property. `os-maven-plugin` find the version number using the following regular expression:
+
+    ((\\d+)\\.(\\d+)).*
+
+* `os.detected.version.major` - the first matching digits
+* `os.detected.version.minor` - the second matching digits
+* `os.detected.version` - `<os.detected.version.major>.<os.detected.version.minor>` e.g. `3.1`
+
+#### `os.detected.classifier`
 
 You can also use the `${os.detected.classifier}` property, which is a shortcut of `${os.detected.name}-${os.detected.arch}`.
 
