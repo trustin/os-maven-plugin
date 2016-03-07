@@ -53,6 +53,7 @@ public abstract class Detector {
     private static final String[] DEFAULT_REDHAT_VARIANTS = {"rhel", "fedora"};
 
     private static final Pattern VERSION_REGEX = Pattern.compile("((\\d+)\\.(\\d+)).*");
+    private static final Pattern REDHAT_MAJOR_VERSION_REGEX = Pattern.compile("(\\d+)");
 
     protected void detect(Properties props, List<String> classifierWithLikes) {
         log("------------------------------------------------------------------------");
@@ -306,11 +307,6 @@ public abstract class Detector {
                 String version = null;
                 if (line.contains("centos")) {
                     id = "centos";
-
-                    Matcher versionMatcher = VERSION_REGEX.matcher(line);
-                    if (versionMatcher.find()) {
-                        version = versionMatcher.group(2);
-                    }
                 } else if (line.contains("fedora")) {
                     id = "fedora";
                 } else if (line.contains("red hat enterprise linux")) {
@@ -318,6 +314,11 @@ public abstract class Detector {
                 } else {
                     // Other variants are not currently supported.
                     return null;
+                }
+
+                Matcher versionMatcher = REDHAT_MAJOR_VERSION_REGEX.matcher(line);
+                if (versionMatcher.find()) {
+                    version = versionMatcher.group(1);
                 }
 
                 Set<String> likeSet = new LinkedHashSet<String>();
