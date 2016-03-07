@@ -6,7 +6,7 @@
 
 `os-maven-plugin` detects the information about the current operating system and normalize it into more portable one.
 
-#### `os.detected.name`
+#### Property: `os.detected.name`
 
 `os.detected.name` is set to one of the following values, based on the lower-cased value of the `os.name` Java system property, whose non-alphanumeric characters are stripped out. e.g. `OS_400` -> `os400`
 
@@ -21,7 +21,7 @@
 * `sunos` - if the value starts with `solaris` or `sunos`
 * `windows` - if the value starts with `windows`
 
-#### `os.detected.arch`
+#### Property: `os.detected.arch`
 
 `os.detected.arch` is set to one of the following values, based on the lower-cased value of the `os.arch` Java system property, whose non-alphanumeric characters are stripped out. e.g. `x86_64` -> `x8664`
 
@@ -38,7 +38,7 @@
 * `s390_32` - if the value is `s390`
 * `s390_64` if the value is `s390x`
 
-#### `os.detected.version.*`
+#### Property: `os.detected.version.*`
 
 `os.detected.version` and its sub-properties are operation system dependent version number that may indicate the kernel or OS release version. They are generated from the `os.version` Java system property. `os-maven-plugin` find the version number using the following regular expression:
 
@@ -48,9 +48,13 @@
 * `os.detected.version.minor` - the second matching digits
 * `os.detected.version` - `<os.detected.version.major>.<os.detected.version.minor>` e.g. `3.1`
 
-#### `os.detected.classifier`
+#### Property: `os.detected.classifier`
 
 You can also use the `${os.detected.classifier}` property, which is a shortcut of `${os.detected.name}-${os.detected.arch}`.
+
+#### Property: `os.detected.release.*` (Linux-only)
+
+See the section 'Customized deployments for specific releases of Linux' below.
 
 ### Enabling `os-maven-plugin` on your Maven project
 
