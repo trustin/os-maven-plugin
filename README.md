@@ -178,6 +178,46 @@ If you are using other IDEs such as NetBeans, you need to set the system propert
 
     -Dos.detected.name=linux -Dos.detected.arch=x86_64 -Dos.detected.classifier=linux-x86_64
 
+### Mapping Rules
 
+#### os.detected.name
 
+The generation of `os.detected.name` is based on the value of the `os.name` system property.
 
+The table below assumes that we have a variable `osName` that is set to `System.getProperty("os.name").toLowerCase()`;
+
+| Rule for `osName` | `os.deteced.name` |
+| ----------------- | --------------------------- |
+| startsWith(`aix`) | `aix` |
+| startsWith(`hpux`) | `hpux` |
+| startsWith(`os400`) AND (`osName.length() <= 5` OR `!Character.isDigit(osName.charAt(5))`) | `os400` |
+| startsWith(`linux`) | `linux` |
+| startsWith(`macosx` OR `osx`) | `osx` |
+| startsWith(`freebsd`) | `freebsd` |
+| startsWith(`openbsd`) | `openbsd` |
+| startsWith(`netbsd`) | `netbsd` |
+| startsWith(`solaris` OR `sunos`) | `sunos` |
+| startsWith(`windows`) | `windows` |
+| default | `unknown` |
+
+#### os.detected.arch
+
+The generation of `os.detected.arch` is based on the value of the `os.arch` system property.
+
+The table below assumes that we have a variable `osArch` that is set to `System.getProperty("os.arch").toLowerCase()`;
+
+| Rule for `osArch` | `os.deteced.arch` |
+| ----------------- | --------------------------- |
+| matches `^(x8664|amd64|ia32e|em64t|x64)$` | `x86_64` |
+| matches `^(x8632|x86|i[3-6]86|ia32|x32)$` | `x86_32` |
+| matches `^(ia64|itanium64)$` | `itanium_64` |
+| matches `^(sparc|sparc32)$` | `sparc_32` |
+| matches `^(sparcv9|sparc64)$` | `sparc_64` |
+| matches `^(arm|arm32)$` | `arm_32` |
+| `aarch64` | `aarch_64` |
+| matches `^(ppc|ppc32)$` | `ppc_32` |
+| `ppc64` | `ppc_64` |
+| `ppc64le` | `ppcle_64` |
+| `s390` | `s390_32` |
+| `s390x` | `s390_64` |
+| default | `unknown` |
