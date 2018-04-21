@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.Nullable;
+
 /**
  * Detects the current operating system and architecture, normalizes them, and sets them to various project
  * properties.
@@ -86,7 +88,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
         // Detect the OS and CPU architecture.
-        Properties sessionProps = new Properties();
+        final Properties sessionProps = new Properties();
         sessionProps.putAll(session.getSystemProperties());
         sessionProps.putAll(session.getUserProperties());
         try {
@@ -96,7 +98,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
 
         // Generate the dictionary.
-        Map<String, String> dict = new LinkedHashMap<String, String>();
+        final Map<String, Object> dict = new LinkedHashMap<String, Object>();
         dict.put(Detector.DETECTED_NAME, sessionProps.getProperty(Detector.DETECTED_NAME));
         dict.put(Detector.DETECTED_ARCH, sessionProps.getProperty(Detector.DETECTED_ARCH));
         dict.put(Detector.DETECTED_CLASSIFIER, sessionProps.getProperty(Detector.DETECTED_CLASSIFIER));
@@ -121,21 +123,21 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
      */
     private static List<String> getClassifierWithLikes(MavenSession session) {
         // Check to see if the project defined the
-        Properties props = new Properties();
+        final Properties props = new Properties();
         props.putAll(session.getUserProperties());
         props.putAll(session.getCurrentProject().getProperties());
         return DetectMojo.getClassifierWithLikes(
             props.getProperty(DetectMojo.CLASSIFIER_WITH_LIKES_PROPERTY));
     }
 
-    private void injectSession(MavenSession session, Map<String, String> dict) {
-        Properties sessionExecProps = session.getSystemProperties();
-        sessionExecProps.setProperty(Detector.DETECTED_NAME, dict.get(Detector.DETECTED_NAME));
-        sessionExecProps.setProperty(Detector.DETECTED_ARCH, dict.get(Detector.DETECTED_ARCH));
-        sessionExecProps.setProperty(Detector.DETECTED_CLASSIFIER, dict.get(Detector.DETECTED_CLASSIFIER));
-        for (Map.Entry<String, String> entry : dict.entrySet()) {
+    private void injectSession(MavenSession session, Map<String, Object> dict) {
+        final Properties sessionExecProps = session.getSystemProperties();
+        sessionExecProps.setProperty(Detector.DETECTED_NAME, String.valueOf(dict.get(Detector.DETECTED_NAME)));
+        sessionExecProps.setProperty(Detector.DETECTED_ARCH, String.valueOf(dict.get(Detector.DETECTED_ARCH)));
+        sessionExecProps.setProperty(Detector.DETECTED_CLASSIFIER, String.valueOf(dict.get(Detector.DETECTED_CLASSIFIER)));
+        for (Map.Entry<String, Object> entry : dict.entrySet()) {
             if (entry.getKey().startsWith(Detector.DETECTED_RELEASE)) {
-                sessionExecProps.setProperty(entry.getKey(), entry.getValue());
+                sessionExecProps.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
             }
         }
 
@@ -151,7 +153,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         RepositorySessionInjector.injectRepositorySession(logger, session, dict);
     }
 
-    private static void interpolate(Map<String, String> dict, MavenProject p) {
+    private static void interpolate(Map<String, Object> dict, MavenProject p) {
         if (p == null) {
             return;
         }
@@ -163,17 +165,20 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private static void interpolate(Map<String, String> dict, ModelBase model) {
-        model.getProperties().putAll(dict);
+    private static void interpolate(Map<String, Object> dict, ModelBase model) {
+        final Properties modelProps = model.getProperties();
+        for (Map.Entry<String, Object> e : dict.entrySet()) {
+            modelProps.setProperty(e.getKey(), String.valueOf(e.getValue()));
+        }
         interpolate(dict, model.getDependencies());
 
-        DependencyManagement depMgmt = model.getDependencyManagement();
+        final DependencyManagement depMgmt = model.getDependencyManagement();
         if (depMgmt != null) {
             interpolate(dict, depMgmt.getDependencies());
         }
 
         if (model instanceof Model) {
-            Build build = ((Model) model).getBuild();
+            final Build build = ((Model) model).getBuild();
             if (build != null) {
                 for (Plugin bp: build.getPlugins()) {
                     interpolate(dict, bp.getDependencies());
@@ -187,7 +192,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private static void interpolate(Map<String, String> dict, Iterable<Dependency> dependencies) {
+    private static void interpolate(Map<String, Object> dict, Iterable<Dependency> dependencies) {
         if (dependencies == null) {
             return;
         }
@@ -205,7 +210,8 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private static String interpolate(Map<String, String> dict, String value) {
+    @Nullable
+    private static String interpolate(Map<String, Object> dict, String value) {
         if (value == null) {
             return null;
         }
@@ -216,10 +222,10 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
                 break;
             }
 
-            InterpolationFilterReader reader = new InterpolationFilterReader(new StringReader(value), dict);
-            StringWriter writer = new StringWriter(value.length());
+            final InterpolationFilterReader reader = new InterpolationFilterReader(new StringReader(value), dict);
+            final StringWriter writer = new StringWriter(value.length());
             for (;;) {
-                int ch;
+                final int ch;
                 try {
                     ch = reader.read();
                 } catch (IOException e) {
@@ -233,9 +239,9 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
                 writer.write(ch);
             }
 
-            String newValue = writer.toString();
+            final String newValue = writer.toString();
             if (value.equals(newValue)) {
-                // No interpolatable prpoerties left.
+                // No interpolatable properties left.
                 break;
             }
 
