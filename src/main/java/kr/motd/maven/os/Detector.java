@@ -73,7 +73,7 @@ public abstract class Detector {
         setProperty(props, DETECTED_NAME, detectedName);
         setProperty(props, DETECTED_ARCH, detectedArch);
 
-        Matcher versionMatcher = VERSION_REGEX.matcher(osVersion);
+        final Matcher versionMatcher = VERSION_REGEX.matcher(osVersion);
         if (versionMatcher.matches()) {
             setProperty(props, DETECTED_VERSION, versionMatcher.group(1));
             setProperty(props, DETECTED_VERSION_MAJOR, versionMatcher.group(2));
@@ -91,10 +91,13 @@ public abstract class Detector {
         }
 
         // Assume the default classifier, without any os "like" extension.
-        String detectedClassifier = detectedName + '-' + detectedArch;
+        final StringBuilder detectedClassifierBuilder = new StringBuilder();
+        detectedClassifierBuilder.append(detectedName);
+        detectedClassifierBuilder.append('-');
+        detectedClassifierBuilder.append(detectedArch);
 
         // For Linux systems, add additional properties regarding details of the OS.
-        LinuxRelease linuxRelease = "linux".equals(detectedName) ? getLinuxRelease() : null;
+        final LinuxRelease linuxRelease = "linux".equals(detectedName) ? getLinuxRelease() : null;
         if (linuxRelease != null) {
             setProperty(props, DETECTED_RELEASE, linuxRelease.id);
             if (linuxRelease.version != null) {
@@ -103,7 +106,7 @@ public abstract class Detector {
 
             // Add properties for all systems that this OS is "like".
             for (String like : linuxRelease.like) {
-                String propKey = DETECTED_RELEASE_LIKE_PREFIX + like;
+                final String propKey = DETECTED_RELEASE_LIKE_PREFIX + like;
                 setProperty(props, propKey, "true");
             }
 
@@ -111,13 +114,14 @@ public abstract class Detector {
             // append it to the classifier.
             for (String classifierLike : classifierWithLikes) {
                 if (linuxRelease.like.contains(classifierLike)) {
-                    detectedClassifier += "-" + classifierLike;
+                    detectedClassifierBuilder.append('-');
+                    detectedClassifierBuilder.append(classifierLike);
                     // First one wins.
                     break;
                 }
             }
         }
-        setProperty(props, DETECTED_CLASSIFIER, detectedClassifier);
+        setProperty(props, DETECTED_CLASSIFIER, detectedClassifierBuilder.toString());
     }
 
     private void setProperty(Properties props, String name, String value) {
@@ -220,7 +224,7 @@ public abstract class Detector {
     private static LinuxRelease getLinuxRelease() {
         // First, look for the os-release file.
         for (String osReleaseFileName : LINUX_OS_RELEASE_FILES) {
-            File file = new File(osReleaseFileName);
+            final File file = new File(osReleaseFileName);
             if (file.exists()) {
                 return parseLinuxOsReleaseFile(file);
             }
@@ -228,7 +232,7 @@ public abstract class Detector {
 
         // Older versions of redhat don't have /etc/os-release. In this case, try
         // parsing this file.
-        File file = new File(REDHAT_RELEASE_FILE);
+        final File file = new File(REDHAT_RELEASE_FILE);
         if (file.exists()) {
             return parseLinuxRedhatReleaseFile(file);
         }
@@ -247,7 +251,7 @@ public abstract class Detector {
 
             String id = null;
             String version = null;
-            Set<String> likeSet = new LinkedHashSet<String>();
+            final Set<String> likeSet = new LinkedHashSet<String>();
             String line;
             while((line = reader.readLine()) != null) {
                 // Parse the ID line.
@@ -272,7 +276,7 @@ public abstract class Detector {
                     line = normalizeOsReleaseValue(line.substring(LINUX_ID_LIKE_PREFIX.length()));
 
                     // Split the line on any whitespace.
-                    String[] parts =  line.split("\\s+");
+                    final String[] parts =  line.split("\\s+");
                     Collections.addAll(likeSet, parts);
                 }
             }
@@ -303,7 +307,7 @@ public abstract class Detector {
             if (line != null) {
                 line = line.toLowerCase(Locale.US);
 
-                String id;
+                final String id;
                 String version = null;
                 if (line.contains("centos")) {
                     id = "centos";
@@ -316,13 +320,12 @@ public abstract class Detector {
                     return null;
                 }
 
-                Matcher versionMatcher = REDHAT_MAJOR_VERSION_REGEX.matcher(line);
+                final Matcher versionMatcher = REDHAT_MAJOR_VERSION_REGEX.matcher(line);
                 if (versionMatcher.find()) {
                     version = versionMatcher.group(1);
                 }
 
-                Set<String> likeSet = new LinkedHashSet<String>();
-                likeSet.addAll(Arrays.asList(DEFAULT_REDHAT_VARIANTS));
+                final Set<String> likeSet = new LinkedHashSet<String>(Arrays.asList(DEFAULT_REDHAT_VARIANTS));
                 likeSet.add(id);
 
                 return new LinuxRelease(id, version, likeSet);

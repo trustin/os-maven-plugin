@@ -1,14 +1,14 @@
 package kr.motd.maven.os;
 
+import java.util.Collections;
+import java.util.Properties;
+
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.IStartup;
 import org.osgi.framework.Bundle;
-
-import java.util.Collections;
-import java.util.Properties;
 
 public class EclipseStartup extends Detector implements IStartup {
 
@@ -18,7 +18,7 @@ public class EclipseStartup extends Detector implements IStartup {
 
     @Override
     public void earlyStartup() {
-        Bundle bundle = Platform.getBundle(ID);
+        final Bundle bundle = Platform.getBundle(ID);
         logger = Platform.getLog(bundle);
         detect(new Properties(), Collections.<String>emptyList());
     }

@@ -15,6 +15,12 @@
  */
 package kr.motd.maven.os;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -22,12 +28,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.Nullable;
 
 /**
  * Detects the current operating system and architecture, normalizes them, and sets them to various project
@@ -57,7 +57,7 @@ public class DetectMojo extends AbstractMojo {
     @SuppressWarnings("UnusedDeclaration")
     private MavenProject project;
 
-    @Parameter(property = CLASSIFIER_WITH_LIKES_PROPERTY, defaultValue = "${" + CLASSIFIER_WITH_LIKES_PROPERTY + "}")
+    @Parameter(property = CLASSIFIER_WITH_LIKES_PROPERTY, defaultValue = "${" + CLASSIFIER_WITH_LIKES_PROPERTY + '}')
     @SuppressWarnings("UnusedDeclaration")
     private String classifierWithLikes;
 
@@ -69,7 +69,7 @@ public class DetectMojo extends AbstractMojo {
 
         @Override
         protected void logProperty(String name, String value) {
-            Log log = getLog();
+            final Log log = getLog();
             if (log.isInfoEnabled()) {
                 log.info(name + ": " + value);
             }
@@ -96,8 +96,8 @@ public class DetectMojo extends AbstractMojo {
         if (propertyValue == null) {
             return Collections.emptyList();
         }
-        String[] parts = propertyValue.split("\\,");
-        List<String> likes = new ArrayList<String>(parts.length);
+        final String[] parts = propertyValue.split(",");
+        final List<String> likes = new ArrayList<String>(parts.length);
         for (String part : parts) {
             part = part.trim();
             if (!part.isEmpty()) {
