@@ -198,8 +198,23 @@ public abstract class Detector {
         if ("aarch64".equals(value)) {
             return "aarch_64";
         }
+        if (value.matches("^(mips|mips32)$")) {
+            return "mips_32";
+        }
+        if (value.matches("^(mipsel|mips32el)$")) {
+            return "mipsel_32";
+        }
+        if ("mips64".equals(value)) {
+            return "mips_64";
+        }
+        if ("mips64el".equals(value)) {
+            return "mipsel_64";
+        }
         if (value.matches("^(ppc|ppc32)$")) {
             return "ppc_32";
+        }
+        if (value.matches("^(ppcle|ppc32le)$")) {
+            return "ppcle_32";
         }
         if ("ppc64".equals(value)) {
             return "ppc_64";
