@@ -1,0 +1,43 @@
+#!/bin/bash -e
+cd "$(dirname "$0")"
+TOP_PROJ_DIR="$PWD"
+BUILD_SRC_DIR="$PWD/src/build"
+
+# Determine the version of os-maven-plugin so that we pass it when running tests.
+if [[ "$(./mvnw initialize)" =~ (Building os-maven-plugin ([-.0-9a-zA-Z]+)) ]]; then
+  PLUGIN_VER=${BASH_REMATCH[2]}
+else
+  echo 'Failed to determine the version of os-maven-plugin'
+  exit 1
+fi
+
+# Install the project to the local Maven repository
+# so that the test projects can refer to it.
+./mvnw clean install
+
+for MVN_VER in '3.1.1' '3.2.5' '3.3.9' '3.5.3'; do
+  echo "Testing os-maven-plugin-$PLUGIN_VER against Maven $MVN_VER"
+
+  # Create a test project.
+  PROJ_DIR="$(mktemp -d)"
+  pushd "$PROJ_DIR"
+  mvn -N io.takari:maven:wrapper -Dmaven=$MVN_VER
+  cp "$BUILD_SRC_DIR/test-pom.xml" pom.xml
+
+  # Ensure that the test project is using the correct Maven version.
+  if [[ "$(./mvnw --version)" =~ (Apache Maven ([.0-9]+)) ]]; then
+    ACTUAL_MVN_VER=${BASH_REMATCH[2]}
+  else
+    echo 'Failed to determine the version of Maven'
+    exit 1
+  fi
+  if [[ "$ACTUAL_MVN_VER" != "$MVN_VER" ]]; then
+    echo "Mismatching Maven version: $ACTUAL_MVN_VER (expected: $MVN_VER)"
+    exit 1
+  fi
+
+  # Run the test and clean up.
+  ./mvnw "-Dos-maven-plugin.version=$PLUGIN_VER" test
+  popd>/dev/null
+  rm -fr "$PROJ_DIR"
+done

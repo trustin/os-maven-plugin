@@ -8,7 +8,7 @@
 
   <groupId>kr.motd.maven</groupId>
   <artifactId>os-maven-plugin</artifactId>
-  <version>1.5.1.Final-SNAPSHOT</version>
+  <version>1.6.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>os-maven-plugin</name>
@@ -50,7 +50,7 @@
   </developers>
 
   <prerequisites>
-    <maven>3.0</maven>
+    <maven>3.1</maven>
   </prerequisites>
 
   <properties>
@@ -62,24 +62,29 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-      <version>3.2.1</version>
+      <version>3.5.3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
-      <version>3.2.1</version>
+      <version>3.5.3</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
-      <version>3.2</version>
+      <version>3.5.1</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
-      <version>3.0.17</version>
+      <version>3.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse</groupId>
@@ -96,7 +101,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -105,7 +110,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
+        <version>3.7.0</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -116,7 +121,7 @@
       <plugin>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-component-metadata</artifactId>
-        <version>1.5.5</version>
+        <version>1.7.1</version>
         <executions>
           <execution>
             <goals>
@@ -127,7 +132,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.3</version>
+        <version>3.5.1</version>
         <configuration>
           <goalPrefix>os</goalPrefix>
           <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
@@ -152,20 +157,20 @@
              be used even when compiling with java 1.7+ -->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.9</version>
+        <version>1.16</version>
         <dependencies>
           <!-- Upgrade ASM and support Java 8 bytecode -->
           <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-all</artifactId>
-            <version>5.0.3</version>
+            <version>5.2</version>
           </dependency>
         </dependencies>
         <configuration>
           <signature>
             <groupId>org.codehaus.mojo.signature</groupId>
             <artifactId>java16</artifactId>
-            <version>1.0</version>
+            <version>1.1</version>
           </signature>
         </configuration>
         <executions>
@@ -179,7 +184,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
+        <version>3.1.0</version>
         <configuration>
           <archive>
             <manifestEntries>

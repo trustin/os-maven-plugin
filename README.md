@@ -25,15 +25,21 @@
 
 `os.detected.arch` is set to one of the following values, based on the lower-cased value of the `os.arch` Java system property, whose non-alphanumeric characters are stripped out. e.g. `x86_64` -> `x8664`
 
-* `x86_64` - if the value is one of: `x8664`, `amd64`, `ia32e`, `em64t`, `x64`
 * `x86_32` - if the value is one of: `x8632`, `x86`, `i386`, `i486`, `i586`, `i686`, `ia32`, `x32`
-* `itanium_64` - if the value is one of: `ia64`, `itanium64`
+* `x86_64` - if the value is one of: `x8664`, `amd64`, `ia32e`, `em64t`, `x64`
+* `itanium_32` - if the value is `ia64n`
+* `itanium_64` - if the value is one of: `ia64`, `ia64w`, `itanium64`
 * `sparc_32` - if the value is one of: `sparc`, `sparc32`
 * `sparc_64` - if the value is one of: `sparcv9`, `sparc64`
 * `arm_32` - if the value is one of: `arm`, `arm32`
 * `aarch_64` - if the value is `aarch64`
+* `mips_32` - if the value is one of: `mips`, `mips32`
+* `mips_64` - if the value is `mips64`
+* `mipsel_32` - if the value is one of: `mipsel`, `mips32el`
+* `mipsel_64` - if the value is `mips64el`
 * `ppc_32` - if the value is one of: `ppc`, `ppc32`
 * `ppc_64` - if the value is `ppc64`
+* `ppcle_32` - if the value is one of: `ppcle`, `ppc32le`
 * `ppcle_64` - if the value is `ppc64le`
 * `s390_32` - if the value is `s390`
 * `s390_64` if the value is `s390x`
@@ -67,7 +73,7 @@ Add the extension to your `pom.xml` like the following:
       <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.5.0.Final</version>
+        <version>1.6.0</version>
       </extension>
     </extensions>
   </build>
@@ -157,7 +163,7 @@ will be automatically appended to the classifier.
       <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.5.0.Final</version>
+        <version>1.6.0</version>
       </extension>
     </extensions>
   </build>
@@ -170,20 +176,16 @@ This will result in a `${os.detected.classifier}` of `linux-<arch>-debian` on de
 
 If you are using IntelliJ IDEA, you should not have any problem.
 
-If you are using Eclipse, you can
+If you are using Eclipse, you can:
 
-* install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.5.0.Final.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.5.0.Final/os-maven-plugin-1.5.0.Final.jar) and put it into the `<ECLIPSE_HOME>/plugins` directory.
+- install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.6.0.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.6.0/os-maven-plugin-1.6.0.jar) and put it into the `<ECLIPSE_HOME>/plugins` directory.
 
 OR
 
-* set the properties that Eclipse can't find in your `~/.m2/settings.xml` in a `<properties>` block
+- set the properties that Eclipse can't find in your `~/.m2/settings.xml` in a `<properties>` block
 
 (As you might have noticed, `os-maven-plugin` is a Maven extension, a Maven plugin, and an Eclipse plugin.)
 
 If you are using other IDEs such as NetBeans, you need to set the system properties `os-maven-plugin` sets manually when your IDE is launched.  You usually use JVM's `-D` flags like the following:
 
     -Dos.detected.name=linux -Dos.detected.arch=x86_64 -Dos.detected.classifier=linux-x86_64
-
-
-
-
