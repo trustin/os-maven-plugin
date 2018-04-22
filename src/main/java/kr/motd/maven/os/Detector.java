@@ -180,8 +180,11 @@ public abstract class Detector {
         if (value.matches("^(x8632|x86|i[3-6]86|ia32|x32)$")) {
             return "x86_32";
         }
-        if (value.matches("^(ia64|itanium64)$")) {
+        if (value.matches("^(ia64w?|itanium64)$")) {
             return "itanium_64";
+        }
+        if ("ia64n".equals(value)) {
+            return "itanium_32";
         }
         if (value.matches("^(sparc|sparc32)$")) {
             return "sparc_32";

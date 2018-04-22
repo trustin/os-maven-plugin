@@ -27,7 +27,8 @@
 
 * `x86_64` - if the value is one of: `x8664`, `amd64`, `ia32e`, `em64t`, `x64`
 * `x86_32` - if the value is one of: `x8632`, `x86`, `i386`, `i486`, `i586`, `i686`, `ia32`, `x32`
-* `itanium_64` - if the value is one of: `ia64`, `itanium64`
+* `itanium_64` - if the value is one of: `ia64`, `ia64w`, `itanium64`
+* `itanium_32` - if the value is one of: `ia64n`
 * `sparc_32` - if the value is one of: `sparc`, `sparc32`
 * `sparc_64` - if the value is one of: `sparcv9`, `sparc64`
 * `arm_32` - if the value is one of: `arm`, `arm32`
