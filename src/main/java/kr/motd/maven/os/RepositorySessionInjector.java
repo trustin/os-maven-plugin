@@ -10,7 +10,7 @@ import org.codehaus.plexus.logging.Logger;
 final class RepositorySessionInjector {
     @SuppressWarnings("unchecked")
     static void injectRepositorySession(
-            Logger logger, MavenSession session, Map<String, Object> dict) {
+            Logger logger, MavenSession session, Map<String, String> dict) {
         // Inject repository session properties.
         try {
             Map<String, String> repoSessionProps;
@@ -24,16 +24,16 @@ final class RepositorySessionInjector {
             final Method getSystemPropertiesMethod = cls.getDeclaredMethod("getSystemProperties");
             repoSessionProps = (Map<String, String>) getSystemPropertiesMethod.invoke(repoSession);
             try {
-                for (Map.Entry<String, Object> e : dict.entrySet()) {
-                    repoSessionProps.put(e.getKey(), String.valueOf(e.getValue()));
+                for (Map.Entry<String, String> e : dict.entrySet()) {
+                    repoSessionProps.put(e.getKey(), e.getValue());
                 }
             } catch (Exception ex) {
                 // Time to hack: RepositorySystemSession.getSystemProperties() returned an immutable map.
                 final Field f = cls.getDeclaredField("systemProperties");
                 f.setAccessible(true);
                 repoSessionProps = (Map<String, String>) f.get(repoSession);
-                for (Map.Entry<String, Object> e : dict.entrySet()) {
-                    repoSessionProps.put(e.getKey(), String.valueOf(e.getValue()));
+                for (Map.Entry<String, String> e : dict.entrySet()) {
+                    repoSessionProps.put(e.getKey(), e.getValue());
                 }
             }
         } catch (Throwable t) {

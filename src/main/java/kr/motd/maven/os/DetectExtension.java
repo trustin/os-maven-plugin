@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
@@ -37,7 +38,6 @@ import org.apache.maven.model.ModelBase;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.InterpolationFilterReader;
 
@@ -67,23 +67,26 @@ import org.codehaus.plexus.util.InterpolationFilterReader;
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "detect-os")
 public class DetectExtension extends AbstractMavenLifecycleParticipant {
 
-    @Requirement
-    @SuppressWarnings("UnusedDeclaration")
-    private Logger logger;
+    private final Logger logger;
+    private final Detector detector;
 
-    private final Detector detector = new Detector() {
-        @Override
-        protected void log(String message) {
-            logger.info(message);
-        }
-
-        @Override
-        protected void logProperty(String name, String value) {
-            if (logger.isInfoEnabled()) {
-                logger.info(name + ": " + value);
+    @Inject
+    public DetectExtension(final Logger logger) {
+        this.logger = logger;
+        detector = new Detector() {
+            @Override
+            protected void log(String message) {
+                logger.info(message);
             }
-        }
-    };
+
+            @Override
+            protected void logProperty(String name, String value) {
+                if (logger.isInfoEnabled()) {
+                    logger.info(name + ": " + value);
+                }
+            }
+        };
+    }
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
@@ -98,7 +101,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
 
         // Generate the dictionary.
-        final Map<String, Object> dict = new LinkedHashMap<String, Object>();
+        final Map<String, String> dict = new LinkedHashMap<String, String>();
         dict.put(Detector.DETECTED_NAME, sessionProps.getProperty(Detector.DETECTED_NAME));
         dict.put(Detector.DETECTED_ARCH, sessionProps.getProperty(Detector.DETECTED_ARCH));
         dict.put(Detector.DETECTED_CLASSIFIER, sessionProps.getProperty(Detector.DETECTED_CLASSIFIER));
@@ -130,12 +133,12 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
             props.getProperty(DetectMojo.CLASSIFIER_WITH_LIKES_PROPERTY));
     }
 
-    private void injectSession(MavenSession session, Map<String, Object> dict) {
+    private void injectSession(MavenSession session, Map<String, String> dict) {
         final Properties sessionExecProps = session.getSystemProperties();
         sessionExecProps.setProperty(Detector.DETECTED_NAME, String.valueOf(dict.get(Detector.DETECTED_NAME)));
         sessionExecProps.setProperty(Detector.DETECTED_ARCH, String.valueOf(dict.get(Detector.DETECTED_ARCH)));
         sessionExecProps.setProperty(Detector.DETECTED_CLASSIFIER, String.valueOf(dict.get(Detector.DETECTED_CLASSIFIER)));
-        for (Map.Entry<String, Object> entry : dict.entrySet()) {
+        for (Map.Entry<String, String> entry : dict.entrySet()) {
             if (entry.getKey().startsWith(Detector.DETECTED_RELEASE)) {
                 sessionExecProps.setProperty(entry.getKey(), String.valueOf(entry.getValue()));
             }
@@ -153,7 +156,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         RepositorySessionInjector.injectRepositorySession(logger, session, dict);
     }
 
-    private static void interpolate(Map<String, Object> dict, MavenProject p) {
+    private static void interpolate(Map<String, String> dict, MavenProject p) {
         if (p == null) {
             return;
         }
@@ -165,9 +168,9 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private static void interpolate(Map<String, Object> dict, ModelBase model) {
+    private static void interpolate(Map<String, String> dict, ModelBase model) {
         final Properties modelProps = model.getProperties();
-        for (Map.Entry<String, Object> e : dict.entrySet()) {
+        for (Map.Entry<String, String> e : dict.entrySet()) {
             modelProps.setProperty(e.getKey(), String.valueOf(e.getValue()));
         }
         interpolate(dict, model.getDependencies());
@@ -192,7 +195,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private static void interpolate(Map<String, Object> dict, Iterable<Dependency> dependencies) {
+    private static void interpolate(Map<String, String> dict, Iterable<Dependency> dependencies) {
         if (dependencies == null) {
             return;
         }
@@ -211,7 +214,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
     }
 
     @Nullable
-    private static String interpolate(Map<String, Object> dict, String value) {
+    private static String interpolate(Map<String, String> dict, String value) {
         if (value == null) {
             return null;
         }
@@ -222,7 +225,9 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
                 break;
             }
 
-            final InterpolationFilterReader reader = new InterpolationFilterReader(new StringReader(value), dict);
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            final InterpolationFilterReader reader = new InterpolationFilterReader(
+                    new StringReader(value), (Map<String, Object>) (Map) dict);
             final StringWriter writer = new StringWriter(value.length());
             for (;;) {
                 final int ch;
