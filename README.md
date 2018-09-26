@@ -180,6 +180,43 @@ If you are using Eclipse, you need to install an additional Eclipse plugin becau
 
 (As you might have noticed, `os-maven-plugin` is a Maven extension, a Maven plugin, and an Eclipse plugin.)
 
+Alternatively, in some projects it may be possible to add the plugin to the build lifecycle instead of using it as an extension. Remove the plugin from the `<extensions>` section of the POM and place it into the `<build><plugins>` section instead:
+
+```xml
+<plugin>
+  <groupId>kr.motd.maven</groupId>
+  <artifactId>os-maven-plugin</artifactId>
+  <version>1.6.0</version>
+  <executions>
+    <execution>
+      <phase>initialize</phase>
+      <goals>
+        <goal>detect</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+```
+
 If you are using other IDEs such as NetBeans, you need to set the system properties `os-maven-plugin` sets manually when your IDE is launched.  You usually use JVM's `-D` flags like the following:
 
     -Dos.detected.name=linux -Dos.detected.arch=x86_64 -Dos.detected.classifier=linux-x86_64
+
+Alternatively, you can hardcode the properties in the local Maven settings. Add the following sections to `settings.xml` (specify property values according to your OS configuration):
+
+```xml
+<profiles>
+  <profile>
+    <id>os-properties</id>
+    <properties>
+      <os.detected.name>linux</os.detected.name>
+      <os.detected.arch>x86_64</os.detected.arch>
+      <os.detected.classifier>linux-x86_64</os.detected.classifier>
+    </properties>
+  </profile>
+</profiles>
+
+<activeProfiles>
+  <activeProfile>os-properties</activeProfile>
+</activeProfiles>
+```
