@@ -73,7 +73,7 @@ Add the extension to your `pom.xml` like the following:
       <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.6.0</version>
+        <version>1.6.1</version>
       </extension>
     </extensions>
   </build>
@@ -163,7 +163,7 @@ will be automatically appended to the classifier.
       <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.6.0</version>
+        <version>1.6.1</version>
       </extension>
     </extensions>
   </build>
@@ -176,7 +176,7 @@ This will result in a `${os.detected.classifier}` of `linux-<arch>-debian` on de
 
 If you are using IntelliJ IDEA, you should not have any problem.
 
-If you are using Eclipse, you need to install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.6.0.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.6.0/os-maven-plugin-1.6.0.jar) and put it into the `<ECLIPSE_HOME>/dropins` directory.
+If you are using Eclipse, you need to install an additional Eclipse plugin because [m2e](https://www.eclipse.org/m2e/) does not evaluate the extension specified in a `pom.xml`.  [Download `os-maven-plugin-1.6.1.jar`](http://repo1.maven.org/maven2/kr/motd/maven/os-maven-plugin/1.6.1/os-maven-plugin-1.6.1.jar) and put it into the `<ECLIPSE_HOME>/dropins` directory.
 
 (As you might have noticed, `os-maven-plugin` is a Maven extension, a Maven plugin, and an Eclipse plugin.)
 
@@ -186,7 +186,7 @@ Alternatively, in some projects it may be possible to add the plugin to the buil
 <plugin>
   <groupId>kr.motd.maven</groupId>
   <artifactId>os-maven-plugin</artifactId>
-  <version>1.6.0</version>
+  <version>1.6.1</version>
   <executions>
     <execution>
       <phase>initialize</phase>
