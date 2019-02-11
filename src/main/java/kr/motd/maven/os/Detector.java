@@ -168,6 +168,9 @@ public abstract class Detector {
         if (value.startsWith("windows")) {
             return "windows";
         }
+        if (value.startsWith("zos")) {
+            return "zos";
+        }
 
         return UNKNOWN;
     }
