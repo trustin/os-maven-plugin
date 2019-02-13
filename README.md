@@ -20,6 +20,7 @@
 * `netbsd` - if the value starts with `netbsd`
 * `sunos` - if the value starts with `solaris` or `sunos`
 * `windows` - if the value starts with `windows`
+* `zos` - if the value starts with `zos`
 
 #### Property: `os.detected.arch`
 
