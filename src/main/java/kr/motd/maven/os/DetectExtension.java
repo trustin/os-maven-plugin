@@ -47,6 +47,8 @@ import org.codehaus.plexus.util.InterpolationFilterReader;
  * <ul>
  * <li>{@code os.detected.name} - normalized {@code os.name} (e.g. {@code linux}, {@code osx})</li>
  * <li>{@code os.detected.arch} - normalized {@code os.arch} (e.g. {@code x86_64}, {@code x86_32})</li>
+ * <li>{@code os.detected.bitness} - bitness from wither {@code sun.arch.data.model} or {@code com.ibm.vm.bitmode} or {@code os.arch}
+ *     (e.g. {@code 64}, {@code 32})</li>
  * <li>{@code os.detected.version} - {@code os.detected.version.major}.{@code os.detected.version.minor}</li>
  * <li>{@code os.detected.version.major} - major part of {@code os.version} (integer value)</li>
  * <li>{@code os.detected.version.minor} - minor part of {@code os.version} (integer value)</li>
@@ -104,6 +106,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         final Map<String, String> dict = new LinkedHashMap<String, String>();
         dict.put(Detector.DETECTED_NAME, sessionProps.getProperty(Detector.DETECTED_NAME));
         dict.put(Detector.DETECTED_ARCH, sessionProps.getProperty(Detector.DETECTED_ARCH));
+        dict.put(Detector.DETECTED_BITNESS, sessionProps.getProperty(Detector.DETECTED_BITNESS));
         dict.put(Detector.DETECTED_CLASSIFIER, sessionProps.getProperty(Detector.DETECTED_CLASSIFIER));
         for (Map.Entry<Object, Object> entry : sessionProps.entrySet()) {
             if (entry.getKey().toString().startsWith(Detector.DETECTED_RELEASE)) {
