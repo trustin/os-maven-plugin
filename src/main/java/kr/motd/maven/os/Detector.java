@@ -226,7 +226,7 @@ public abstract class Detector {
             return "ppcle_64";
         }
         if ("s390".equals(value)) {
-            return "s390_32";
+            return "s390";
         }
         if ("s390x".equals(value)) {
             return "s390x";
