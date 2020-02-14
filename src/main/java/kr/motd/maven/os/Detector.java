@@ -229,7 +229,7 @@ public abstract class Detector {
             return "s390_32";
         }
         if ("s390x".equals(value)) {
-            return "s390_64";
+            return "s390x";
         }
 
         return UNKNOWN;
