@@ -51,7 +51,7 @@ import org.apache.maven.project.MavenProject;
  *     available. An entry will always be made for os.detected.release.like.${os.detected.release}. </li>
  * </ul>
  */
-@Mojo(name = "detect", defaultPhase = LifecyclePhase.VALIDATE)
+@Mojo(name = "detect", defaultPhase = LifecyclePhase.VALIDATE, threadSafe = true)
 public class DetectMojo extends AbstractMojo {
     static final String CLASSIFIER_WITH_LIKES_PROPERTY = "os.detection.classifierWithLikes";
 
