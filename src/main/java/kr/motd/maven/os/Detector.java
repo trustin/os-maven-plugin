@@ -36,6 +36,7 @@ public abstract class Detector {
 
     public static final String DETECTED_NAME = "os.detected.name";
     public static final String DETECTED_ARCH = "os.detected.arch";
+    public static final String DETECTED_BITNESS = "os.detected.bitness";
     public static final String DETECTED_VERSION = "os.detected.version";
     public static final String DETECTED_VERSION_MAJOR = DETECTED_VERSION + ".major";
     public static final String DETECTED_VERSION_MINOR = DETECTED_VERSION + ".minor";
@@ -69,9 +70,11 @@ public abstract class Detector {
 
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
+        final int detectedBitness = determineBitness(detectedArch);
 
         setProperty(props, DETECTED_NAME, detectedName);
         setProperty(props, DETECTED_ARCH, detectedArch);
+        setProperty(props, DETECTED_BITNESS,"" + detectedBitness);
 
         final Matcher versionMatcher = VERSION_REGEX.matcher(osVersion);
         if (versionMatcher.matches()) {
@@ -363,6 +366,34 @@ public abstract class Detector {
         // Remove any quotes from the string.
         return value.trim().replace("\"", "");
     }
+
+    public static int determineBitness(String architecture) {
+        // try the widely adopted sun specification first.
+        String bitness = System.getProperty("sun.arch.data.model", "");
+
+        if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
+            return Integer.parseInt(bitness, 10);
+        }
+
+        // bitness from sun.arch.data.model cannot be used. Try the IBM specification.
+        bitness = System.getProperty("com.ibm.vm.bitmode", "");
+
+        if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
+            return Integer.parseInt(bitness, 10);
+        }
+
+        // as a last resort, try to determine the bitness from the architecture.
+      return guessBitnessFromArchitecture(architecture);
+    }
+
+    public static int guessBitnessFromArchitecture(final String arch) {
+        if (arch.contains("64")) {
+            return 64;
+        }
+
+        return 32;
+    }
+
 
     private static void closeQuietly(Closeable obj) {
         try {

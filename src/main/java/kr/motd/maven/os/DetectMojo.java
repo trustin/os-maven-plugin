@@ -35,6 +35,8 @@ import org.apache.maven.project.MavenProject;
  * <ul>
  * <li>{@code os.detected.name} - normalized {@code os.name} (e.g. {@code linux}, {@code osx})</li>
  * <li>{@code os.detected.arch} - normalized {@code os.arch} (e.g. {@code x86_64}, {@code x86_32})</li>
+ * <li>{@code os.detected.bitness} - bitness from wither {@code sun.arch.data.model} or {@code com.ibm.vm.bitmode} or {@code os.arch}
+ *     (e.g. {@code 64}, {@code 32})</li>
  * <li>{@code os.detected.classifier} - a shortcut for {@code 'os.detectedName'.'os.detectedArch'}
  *     (e.g. {@code linux-x86_64}). If the property {@code ${os.detection.classifierWithLikes}} is set,
  *     the first value for which a corresponding {@code os.detected.release.like.{variant}} property
