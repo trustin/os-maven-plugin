@@ -110,10 +110,10 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.1</version>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <debug>true</debug>
           <optimize>true</optimize>
         </configuration>
@@ -132,7 +132,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>3.6.0</version>
         <configuration>
           <goalPrefix>os</goalPrefix>
           <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
@@ -157,20 +157,12 @@
              be used even when compiling with java 1.7+ -->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.16</version>
-        <dependencies>
-          <!-- Upgrade ASM and support Java 8 bytecode -->
-          <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-all</artifactId>
-            <version>5.2</version>
-          </dependency>
-        </dependencies>
+        <version>1.18</version>
         <configuration>
           <signature>
             <groupId>org.codehaus.mojo.signature</groupId>
-            <artifactId>java16</artifactId>
-            <version>1.1</version>
+            <artifactId>java18</artifactId>
+            <version>1.0</version>
           </signature>
         </configuration>
         <executions>
@@ -184,7 +176,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
         <configuration>
           <archive>
             <manifestEntries>
@@ -193,7 +185,7 @@
               <Bundle-SymbolicName>kr.motd.maven.os;singleton:=true</Bundle-SymbolicName>
               <Bundle-Version>${project.version}</Bundle-Version>
               <Require-Bundle>org.eclipse.core.runtime,org.eclipse.ui</Require-Bundle>
-              <Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
+              <Bundle-RequiredExecutionEnvironment>JavaSE-1.8</Bundle-RequiredExecutionEnvironment>
             </manifestEntries>
           </archive>
         </configuration>
