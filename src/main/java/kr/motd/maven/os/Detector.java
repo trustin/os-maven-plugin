@@ -395,7 +395,7 @@ public abstract class Detector {
       return guessBitnessFromArchitecture(architecture);
     }
 
-    private static int guessBitnessFromArchitecture(final String arch) {
+    public static int guessBitnessFromArchitecture(final String arch) {
         if (arch.contains("64")) {
             return 64;
         }
