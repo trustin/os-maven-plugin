@@ -56,17 +56,17 @@ public abstract class Detector {
     private static final Pattern VERSION_REGEX = Pattern.compile("((\\d+)\\.(\\d+)).*");
     private static final Pattern REDHAT_MAJOR_VERSION_REGEX = Pattern.compile("(\\d+)");
 
-    private final SystemPropertyActionFacade systemPropertyActionFacade;
-    private final FileActionFacade fileActionFacade;
+    private final SystemPropertyOperationProvider systemPropertyOperationProvider;
+    private final FileOperationProvider fileOperationProvider;
 
     public Detector() {
         this(new SimpleSystemPropertyOperations(), new SimpleFileOperations());
     }
 
-    public Detector(SystemPropertyActionFacade systemPropertyActionFacade,
-        FileActionFacade fileActionFacade) {
-        this.systemPropertyActionFacade = systemPropertyActionFacade;
-        this.fileActionFacade = fileActionFacade;
+    public Detector(SystemPropertyOperationProvider systemPropertyOperationProvider,
+        FileOperationProvider fileOperationProvider) {
+        this.systemPropertyOperationProvider = systemPropertyOperationProvider;
+        this.fileOperationProvider = fileOperationProvider;
     }
 
     protected void detect(Properties props, List<String> classifierWithLikes) {
@@ -74,9 +74,9 @@ public abstract class Detector {
         log("Detecting the operating system and CPU architecture");
         log("------------------------------------------------------------------------");
 
-        final String osName = systemPropertyActionFacade.getSystemProperty("os.name");
-        final String osArch = systemPropertyActionFacade.getSystemProperty("os.arch");
-        final String osVersion = systemPropertyActionFacade.getSystemProperty("os.version");
+        final String osName = systemPropertyOperationProvider.getSystemProperty("os.name");
+        final String osArch = systemPropertyOperationProvider.getSystemProperty("os.arch");
+        final String osVersion = systemPropertyOperationProvider.getSystemProperty("os.version");
 
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
@@ -94,7 +94,7 @@ public abstract class Detector {
         }
 
         final String failOnUnknownOS =
-            systemPropertyActionFacade.getSystemProperty("failOnUnknownOS");
+            systemPropertyOperationProvider.getSystemProperty("failOnUnknownOS");
         if (!"false".equalsIgnoreCase(failOnUnknownOS)) {
             if (UNKNOWN.equals(detectedName)) {
                 throw new DetectionException("unknown os.name: " + osName);
@@ -141,7 +141,7 @@ public abstract class Detector {
 
     private void setProperty(Properties props, String name, String value) {
         props.setProperty(name, value);
-        systemPropertyActionFacade.setSystemProperty(name, value);
+        systemPropertyOperationProvider.setSystemProperty(name, value);
         logProperty(name, value);
     }
 
@@ -278,7 +278,7 @@ public abstract class Detector {
     private LinuxRelease parseLinuxOsReleaseFile(String fileName) {
         BufferedReader reader = null;
         try {
-            InputStream in = fileActionFacade.readFile(fileName);
+            InputStream in = fileOperationProvider.readFile(fileName);
             reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             String id = null;
@@ -332,7 +332,7 @@ public abstract class Detector {
     private LinuxRelease parseLinuxRedhatReleaseFile(String fileName) {
         BufferedReader reader = null;
         try {
-            InputStream in = fileActionFacade.readFile(fileName);
+            InputStream in = fileOperationProvider.readFile(fileName);
             reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             // There is only a single line in this file.
@@ -378,14 +378,14 @@ public abstract class Detector {
 
     private int determineBitness(String architecture) {
         // try the widely adopted sun specification first.
-        String bitness = systemPropertyActionFacade.getSystemProperty("sun.arch.data.model", "");
+        String bitness = systemPropertyOperationProvider.getSystemProperty("sun.arch.data.model", "");
 
         if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
             return Integer.parseInt(bitness, 10);
         }
 
         // bitness from sun.arch.data.model cannot be used. Try the IBM specification.
-        bitness = systemPropertyActionFacade.getSystemProperty("com.ibm.vm.bitmode", "");
+        bitness = systemPropertyOperationProvider.getSystemProperty("com.ibm.vm.bitmode", "");
 
         if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
             return Integer.parseInt(bitness, 10);
@@ -426,7 +426,7 @@ public abstract class Detector {
         }
     }
 
-    private static class SimpleSystemPropertyOperations implements SystemPropertyActionFacade {
+    private static class SimpleSystemPropertyOperations implements SystemPropertyOperationProvider {
         @Override
         public String getSystemProperty(String name) {
             return System.getProperty(name);
@@ -443,7 +443,7 @@ public abstract class Detector {
         }
     }
 
-    private static class SimpleFileOperations implements FileActionFacade {
+    private static class SimpleFileOperations implements FileOperationProvider {
         @Override
         public InputStream readFile(String fileName) throws IOException {
             return new FileInputStream(fileName);

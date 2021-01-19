@@ -19,7 +19,7 @@ package kr.motd.maven.os;
 /**
  * Interface exposing system property operations.
  */
-public interface SystemPropertyActionFacade {
+public interface SystemPropertyOperationProvider {
 
   /**
    * Gets the system property indicated by the specified name.

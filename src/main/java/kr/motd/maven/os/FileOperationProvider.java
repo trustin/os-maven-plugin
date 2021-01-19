@@ -22,7 +22,7 @@ import java.io.InputStream;
 /**
  * Interface exposing file operations.
  */
-public interface FileActionFacade {
+public interface FileOperationProvider {
 
   /**
    * Gets a {@link InputStream} for reading the content of the file with the specified name.
