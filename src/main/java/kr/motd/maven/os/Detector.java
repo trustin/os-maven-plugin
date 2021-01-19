@@ -80,7 +80,7 @@ public abstract class Detector {
 
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
-        final int detectedBitness = determineBitness(systemPropertyActionFacade, detectedArch);
+        final int detectedBitness = determineBitness(detectedArch);
 
         setProperty(props, DETECTED_NAME, detectedName);
         setProperty(props, DETECTED_ARCH, detectedArch);
@@ -112,7 +112,7 @@ public abstract class Detector {
 
         // For Linux systems, add additional properties regarding details of the OS.
         final LinuxRelease linuxRelease =
-            "linux".equals(detectedName) ? getLinuxRelease(fileActionFacade) : null;
+            "linux".equals(detectedName) ? getLinuxRelease() : null;
         if (linuxRelease != null) {
             setProperty(props, DETECTED_RELEASE, linuxRelease.id);
             if (linuxRelease.version != null) {
@@ -257,10 +257,10 @@ public abstract class Detector {
         return value.toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "");
     }
 
-    private static LinuxRelease getLinuxRelease(FileActionFacade fileActionFacade) {
+    private LinuxRelease getLinuxRelease() {
         // First, look for the os-release file.
         for (String osReleaseFileName : LINUX_OS_RELEASE_FILES) {
-            LinuxRelease res = parseLinuxOsReleaseFile(fileActionFacade, osReleaseFileName);
+            LinuxRelease res = parseLinuxOsReleaseFile(osReleaseFileName);
             if (res != null) {
                 return res;
             }
@@ -268,15 +268,14 @@ public abstract class Detector {
 
         // Older versions of redhat don't have /etc/os-release. In this case, try
         // parsing this file.
-        return parseLinuxRedhatReleaseFile(fileActionFacade, REDHAT_RELEASE_FILE);
+        return parseLinuxRedhatReleaseFile(REDHAT_RELEASE_FILE);
     }
 
     /**
      * Parses a file in the format of {@code /etc/os-release} and return a {@link LinuxRelease}
      * based on the {@code ID}, {@code ID_LIKE}, and {@code VERSION_ID} entries.
      */
-    private static LinuxRelease parseLinuxOsReleaseFile(
-        FileActionFacade fileActionFacade, String fileName) {
+    private LinuxRelease parseLinuxOsReleaseFile(String fileName) {
         BufferedReader reader = null;
         try {
             InputStream in = fileActionFacade.readFile(fileName);
@@ -330,8 +329,7 @@ public abstract class Detector {
      * ID and like ["rhel", "fedora", ID]. Currently only supported for CentOS, Fedora, and RHEL.
      * Other variants will return {@code null}.
      */
-    private static LinuxRelease parseLinuxRedhatReleaseFile(
-        FileActionFacade fileActionFacade, String fileName) {
+    private LinuxRelease parseLinuxRedhatReleaseFile(String fileName) {
         BufferedReader reader = null;
         try {
             InputStream in = fileActionFacade.readFile(fileName);
@@ -378,8 +376,7 @@ public abstract class Detector {
         return value.trim().replace("\"", "");
     }
 
-    private static int determineBitness(
-        SystemPropertyActionFacade systemPropertyActionFacade, String architecture) {
+    private int determineBitness(String architecture) {
         // try the widely adopted sun specification first.
         String bitness = systemPropertyActionFacade.getSystemProperty("sun.arch.data.model", "");
 
