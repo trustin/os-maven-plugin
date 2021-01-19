@@ -17,9 +17,9 @@ package kr.motd.maven.os;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,21 +56,31 @@ public abstract class Detector {
     private static final Pattern VERSION_REGEX = Pattern.compile("((\\d+)\\.(\\d+)).*");
     private static final Pattern REDHAT_MAJOR_VERSION_REGEX = Pattern.compile("(\\d+)");
 
+    private final SystemPropertyActionFacade systemPropertyActionFacade;
+    private final FileActionFacade fileActionFacade;
+
+    public Detector() {
+        this(new SimpleSystemPropertyOperations(), new SimpleFileOperations());
+    }
+
+    public Detector(SystemPropertyActionFacade systemPropertyActionFacade,
+        FileActionFacade fileActionFacade) {
+        this.systemPropertyActionFacade = systemPropertyActionFacade;
+        this.fileActionFacade = fileActionFacade;
+    }
+
     protected void detect(Properties props, List<String> classifierWithLikes) {
         log("------------------------------------------------------------------------");
         log("Detecting the operating system and CPU architecture");
         log("------------------------------------------------------------------------");
 
-        final Properties allProps = new Properties(System.getProperties());
-        allProps.putAll(props);
-
-        final String osName = allProps.getProperty("os.name");
-        final String osArch = allProps.getProperty("os.arch");
-        final String osVersion = allProps.getProperty("os.version");
+        final String osName = systemPropertyActionFacade.getSystemProperty("os.name");
+        final String osArch = systemPropertyActionFacade.getSystemProperty("os.arch");
+        final String osVersion = systemPropertyActionFacade.getSystemProperty("os.version");
 
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
-        final int detectedBitness = determineBitness(detectedArch);
+        final int detectedBitness = determineBitness(systemPropertyActionFacade, detectedArch);
 
         setProperty(props, DETECTED_NAME, detectedName);
         setProperty(props, DETECTED_ARCH, detectedArch);
@@ -83,7 +93,8 @@ public abstract class Detector {
             setProperty(props, DETECTED_VERSION_MINOR, versionMatcher.group(3));
         }
 
-        final String failOnUnknownOS = allProps.getProperty("failOnUnknownOS");
+        final String failOnUnknownOS =
+            systemPropertyActionFacade.getSystemProperty("failOnUnknownOS");
         if (!"false".equalsIgnoreCase(failOnUnknownOS)) {
             if (UNKNOWN.equals(detectedName)) {
                 throw new DetectionException("unknown os.name: " + osName);
@@ -100,7 +111,8 @@ public abstract class Detector {
         detectedClassifierBuilder.append(detectedArch);
 
         // For Linux systems, add additional properties regarding details of the OS.
-        final LinuxRelease linuxRelease = "linux".equals(detectedName) ? getLinuxRelease() : null;
+        final LinuxRelease linuxRelease =
+            "linux".equals(detectedName) ? getLinuxRelease(fileActionFacade) : null;
         if (linuxRelease != null) {
             setProperty(props, DETECTED_RELEASE, linuxRelease.id);
             if (linuxRelease.version != null) {
@@ -129,7 +141,7 @@ public abstract class Detector {
 
     private void setProperty(Properties props, String name, String value) {
         props.setProperty(name, value);
-        System.setProperty(name, value);
+        systemPropertyActionFacade.setSystemProperty(name, value);
         logProperty(name, value);
     }
 
@@ -245,33 +257,33 @@ public abstract class Detector {
         return value.toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "");
     }
 
-    private static LinuxRelease getLinuxRelease() {
+    private static LinuxRelease getLinuxRelease(FileActionFacade fileActionFacade) {
         // First, look for the os-release file.
         for (String osReleaseFileName : LINUX_OS_RELEASE_FILES) {
-            final File file = new File(osReleaseFileName);
-            if (file.exists()) {
-                return parseLinuxOsReleaseFile(file);
+            LinuxRelease res = parseLinuxOsReleaseFile(fileActionFacade, osReleaseFileName);
+            if (res != null) {
+                return res;
             }
         }
 
         // Older versions of redhat don't have /etc/os-release. In this case, try
         // parsing this file.
-        final File file = new File(REDHAT_RELEASE_FILE);
-        if (file.exists()) {
-            return parseLinuxRedhatReleaseFile(file);
-        }
-
-        return null;
+        return parseLinuxRedhatReleaseFile(fileActionFacade, REDHAT_RELEASE_FILE);
     }
 
     /**
      * Parses a file in the format of {@code /etc/os-release} and return a {@link LinuxRelease}
      * based on the {@code ID}, {@code ID_LIKE}, and {@code VERSION_ID} entries.
      */
-    private static LinuxRelease parseLinuxOsReleaseFile(File file) {
+    private static LinuxRelease parseLinuxOsReleaseFile(
+        FileActionFacade fileActionFacade, String fileName) {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+            InputStream in = fileActionFacade.readFile(fileName);
+            if (in == null) {
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             String id = null;
             String version = null;
@@ -321,10 +333,15 @@ public abstract class Detector {
      * ID and like ["rhel", "fedora", ID]. Currently only supported for CentOS, Fedora, and RHEL.
      * Other variants will return {@code null}.
      */
-    private static LinuxRelease parseLinuxRedhatReleaseFile(File file) {
+    private static LinuxRelease parseLinuxRedhatReleaseFile(
+        FileActionFacade fileActionFacade, String fileName) {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+            InputStream in = fileActionFacade.readFile(fileName);
+            if (in == null) {
+                return null;
+            }
+            reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             // There is only a single line in this file.
             String line = reader.readLine();
@@ -367,16 +384,17 @@ public abstract class Detector {
         return value.trim().replace("\"", "");
     }
 
-    public static int determineBitness(String architecture) {
+    private static int determineBitness(
+        SystemPropertyActionFacade systemPropertyActionFacade, String architecture) {
         // try the widely adopted sun specification first.
-        String bitness = System.getProperty("sun.arch.data.model", "");
+        String bitness = systemPropertyActionFacade.getSystemProperty("sun.arch.data.model", "");
 
         if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
             return Integer.parseInt(bitness, 10);
         }
 
         // bitness from sun.arch.data.model cannot be used. Try the IBM specification.
-        bitness = System.getProperty("com.ibm.vm.bitmode", "");
+        bitness = systemPropertyActionFacade.getSystemProperty("com.ibm.vm.bitmode", "");
 
         if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
             return Integer.parseInt(bitness, 10);
@@ -386,7 +404,7 @@ public abstract class Detector {
       return guessBitnessFromArchitecture(architecture);
     }
 
-    public static int guessBitnessFromArchitecture(final String arch) {
+    private static int guessBitnessFromArchitecture(final String arch) {
         if (arch.contains("64")) {
             return 64;
         }
@@ -414,6 +432,30 @@ public abstract class Detector {
             this.id = id;
             this.version = version;
             this.like = Collections.unmodifiableCollection(like);
+        }
+    }
+
+    private static class SimpleSystemPropertyOperations implements SystemPropertyActionFacade {
+        @Override
+        public String getSystemProperty(String name) {
+            return System.getProperty(name);
+        }
+
+        @Override
+        public String getSystemProperty(String name, String def) {
+            return System.getProperty(name, def);
+        }
+
+        @Override
+        public String setSystemProperty(String name, String value) {
+            return System.setProperty(name, value);
+        }
+    }
+
+    private static class SimpleFileOperations implements FileActionFacade {
+        @Override
+        public InputStream readFile(String fileName) throws IOException {
+            return new FileInputStream(fileName);
         }
     }
 }
