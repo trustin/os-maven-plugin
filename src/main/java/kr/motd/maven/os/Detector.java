@@ -280,9 +280,6 @@ public abstract class Detector {
         BufferedReader reader = null;
         try {
             InputStream in = fileActionFacade.readFile(fileName);
-            if (in == null) {
-                return null;
-            }
             reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             String id = null;
@@ -338,9 +335,6 @@ public abstract class Detector {
         BufferedReader reader = null;
         try {
             InputStream in = fileActionFacade.readFile(fileName);
-            if (in == null) {
-                return null;
-            }
             reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             // There is only a single line in this file.
