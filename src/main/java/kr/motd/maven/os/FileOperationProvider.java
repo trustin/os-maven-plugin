@@ -25,12 +25,12 @@ import java.io.InputStream;
 public interface FileOperationProvider {
 
   /**
-   * Gets a {@link InputStream} for reading the content of the file with the specified name.
+   * Gets a {@link InputStream} for reading the content of the file with the specified path.
    *
-   * @param      fileName   the system-dependent file name.
+   * @param      filePath   the system-dependent file path.
    * @return     the {@link InputStream} that can be read to get the file content.
    * @throws     IOException if the file does not exist, is a directory rather than a regular
    *             file, or for some other reason cannot be opened for reading.
    */
-  InputStream readFile(String fileName) throws IOException;
+  InputStream readFile(String filePath) throws IOException;
 }
