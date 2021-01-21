@@ -111,8 +111,7 @@ public abstract class Detector {
         detectedClassifierBuilder.append(detectedArch);
 
         // For Linux systems, add additional properties regarding details of the OS.
-        final LinuxRelease linuxRelease =
-            "linux".equals(detectedName) ? getLinuxRelease() : null;
+        final LinuxRelease linuxRelease = "linux".equals(detectedName) ? getLinuxRelease() : null;
         if (linuxRelease != null) {
             setProperty(props, DETECTED_RELEASE, linuxRelease.id);
             if (linuxRelease.version != null) {
