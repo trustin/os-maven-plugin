@@ -17,9 +17,9 @@ package kr.motd.maven.os;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,17 +56,27 @@ public abstract class Detector {
     private static final Pattern VERSION_REGEX = Pattern.compile("((\\d+)\\.(\\d+)).*");
     private static final Pattern REDHAT_MAJOR_VERSION_REGEX = Pattern.compile("(\\d+)");
 
+    private final SystemPropertyOperationProvider systemPropertyOperationProvider;
+    private final FileOperationProvider fileOperationProvider;
+
+    public Detector() {
+        this(new SimpleSystemPropertyOperations(), new SimpleFileOperations());
+    }
+
+    public Detector(SystemPropertyOperationProvider systemPropertyOperationProvider,
+        FileOperationProvider fileOperationProvider) {
+        this.systemPropertyOperationProvider = systemPropertyOperationProvider;
+        this.fileOperationProvider = fileOperationProvider;
+    }
+
     protected void detect(Properties props, List<String> classifierWithLikes) {
         log("------------------------------------------------------------------------");
         log("Detecting the operating system and CPU architecture");
         log("------------------------------------------------------------------------");
 
-        final Properties allProps = new Properties(System.getProperties());
-        allProps.putAll(props);
-
-        final String osName = allProps.getProperty("os.name");
-        final String osArch = allProps.getProperty("os.arch");
-        final String osVersion = allProps.getProperty("os.version");
+        final String osName = systemPropertyOperationProvider.getSystemProperty("os.name");
+        final String osArch = systemPropertyOperationProvider.getSystemProperty("os.arch");
+        final String osVersion = systemPropertyOperationProvider.getSystemProperty("os.version");
 
         final String detectedName = normalizeOs(osName);
         final String detectedArch = normalizeArch(osArch);
@@ -83,7 +93,8 @@ public abstract class Detector {
             setProperty(props, DETECTED_VERSION_MINOR, versionMatcher.group(3));
         }
 
-        final String failOnUnknownOS = allProps.getProperty("failOnUnknownOS");
+        final String failOnUnknownOS =
+            systemPropertyOperationProvider.getSystemProperty("failOnUnknownOS");
         if (!"false".equalsIgnoreCase(failOnUnknownOS)) {
             if (UNKNOWN.equals(detectedName)) {
                 throw new DetectionException("unknown os.name: " + osName);
@@ -129,7 +140,7 @@ public abstract class Detector {
 
     private void setProperty(Properties props, String name, String value) {
         props.setProperty(name, value);
-        System.setProperty(name, value);
+        systemPropertyOperationProvider.setSystemProperty(name, value);
         logProperty(name, value);
     }
 
@@ -245,33 +256,29 @@ public abstract class Detector {
         return value.toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "");
     }
 
-    private static LinuxRelease getLinuxRelease() {
+    private LinuxRelease getLinuxRelease() {
         // First, look for the os-release file.
         for (String osReleaseFileName : LINUX_OS_RELEASE_FILES) {
-            final File file = new File(osReleaseFileName);
-            if (file.exists()) {
-                return parseLinuxOsReleaseFile(file);
+            LinuxRelease res = parseLinuxOsReleaseFile(osReleaseFileName);
+            if (res != null) {
+                return res;
             }
         }
 
         // Older versions of redhat don't have /etc/os-release. In this case, try
         // parsing this file.
-        final File file = new File(REDHAT_RELEASE_FILE);
-        if (file.exists()) {
-            return parseLinuxRedhatReleaseFile(file);
-        }
-
-        return null;
+        return parseLinuxRedhatReleaseFile(REDHAT_RELEASE_FILE);
     }
 
     /**
      * Parses a file in the format of {@code /etc/os-release} and return a {@link LinuxRelease}
      * based on the {@code ID}, {@code ID_LIKE}, and {@code VERSION_ID} entries.
      */
-    private static LinuxRelease parseLinuxOsReleaseFile(File file) {
+    private LinuxRelease parseLinuxOsReleaseFile(String fileName) {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+            InputStream in = fileOperationProvider.readFile(fileName);
+            reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             String id = null;
             String version = null;
@@ -321,10 +328,11 @@ public abstract class Detector {
      * ID and like ["rhel", "fedora", ID]. Currently only supported for CentOS, Fedora, and RHEL.
      * Other variants will return {@code null}.
      */
-    private static LinuxRelease parseLinuxRedhatReleaseFile(File file) {
+    private LinuxRelease parseLinuxRedhatReleaseFile(String fileName) {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+            InputStream in = fileOperationProvider.readFile(fileName);
+            reader = new BufferedReader(new InputStreamReader(in, "utf-8"));
 
             // There is only a single line in this file.
             String line = reader.readLine();
@@ -367,16 +375,16 @@ public abstract class Detector {
         return value.trim().replace("\"", "");
     }
 
-    public static int determineBitness(String architecture) {
+    private int determineBitness(String architecture) {
         // try the widely adopted sun specification first.
-        String bitness = System.getProperty("sun.arch.data.model", "");
+        String bitness = systemPropertyOperationProvider.getSystemProperty("sun.arch.data.model", "");
 
         if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
             return Integer.parseInt(bitness, 10);
         }
 
         // bitness from sun.arch.data.model cannot be used. Try the IBM specification.
-        bitness = System.getProperty("com.ibm.vm.bitmode", "");
+        bitness = systemPropertyOperationProvider.getSystemProperty("com.ibm.vm.bitmode", "");
 
         if (!bitness.isEmpty() && bitness.matches("[0-9]+")) {
             return Integer.parseInt(bitness, 10);
@@ -414,6 +422,30 @@ public abstract class Detector {
             this.id = id;
             this.version = version;
             this.like = Collections.unmodifiableCollection(like);
+        }
+    }
+
+    private static class SimpleSystemPropertyOperations implements SystemPropertyOperationProvider {
+        @Override
+        public String getSystemProperty(String name) {
+            return System.getProperty(name);
+        }
+
+        @Override
+        public String getSystemProperty(String name, String def) {
+            return System.getProperty(name, def);
+        }
+
+        @Override
+        public String setSystemProperty(String name, String value) {
+            return System.setProperty(name, value);
+        }
+    }
+
+    private static class SimpleFileOperations implements FileOperationProvider {
+        @Override
+        public InputStream readFile(String fileName) throws IOException {
+            return new FileInputStream(fileName);
         }
     }
 }
