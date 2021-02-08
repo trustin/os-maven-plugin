@@ -45,6 +45,7 @@
 * `s390_32` - if the value is `s390`
 * `s390_64` if the value is `s390x`
 * `riscv` if the value is `riscv`
+
 Note: The bitness part of this property relies on the bitness of the JVM binary, e.g. You'll get the property that ends with `_32` if you run a 32-bit JVM on a 64-bit OS.
 
 #### Property: `os.detected.bitness`
