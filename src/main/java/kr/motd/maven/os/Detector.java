@@ -248,6 +248,9 @@ public abstract class Detector {
         if ("riscv".equals(value)) {
             return "riscv";
         }
+        if ("e2k".equals(value)) {
+            return "e2k";
+        }
         return UNKNOWN;
     }
 
