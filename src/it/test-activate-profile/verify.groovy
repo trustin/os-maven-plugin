@@ -16,7 +16,7 @@ if (SystemUtils.IS_OS_WINDOWS) {
 } else if (SystemUtils.IS_OS_LINUX) {
     String osReleaseContent = FileUtils.readFileToString(new File("/etc/os-release"))
 
-    if (osReleaseContent.contains("id=ubuntu")) {
+    if (osReleaseContent.contains("ID=ubuntu")) {
         assert projectProperties."active.profile" == 'detected-ubuntu'
     }
 }
