@@ -15,17 +15,6 @@
  */
 package kr.motd.maven.os;
 
-import org.apache.maven.AbstractMavenLifecycleParticipant;
-import org.apache.maven.MavenExecutionException;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.model.*;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.util.InterpolationFilterReader;
-
-import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -33,6 +22,24 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+
+import org.apache.maven.AbstractMavenLifecycleParticipant;
+import org.apache.maven.MavenExecutionException;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Build;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.Exclusion;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.ModelBase;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.logging.Logger;
+import org.codehaus.plexus.util.InterpolationFilterReader;
 
 /**
  * Detects the current operating system and architecture, normalizes them, and sets them to various project
@@ -155,7 +162,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
 
         // Work around the 'NoClassDefFoundError' or 'ClassNotFoundException' related with Aether in IntelliJ IDEA.
-        for (StackTraceElement e : new Exception().getStackTrace()) {
+        for (StackTraceElement e: new Exception().getStackTrace()) {
             if (String.valueOf(e.getClassName()).startsWith("org.jetbrains.idea.maven")) {
                 return;
             }
@@ -173,7 +180,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
 
         interpolate(dict, p.getParent());
         interpolate(dict, p.getModel());
-        for (ModelBase model : p.getActiveProfiles()) {
+        for (ModelBase model: p.getActiveProfiles()) {
             interpolate(dict, model);
         }
     }
@@ -193,11 +200,11 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         if (model instanceof Model) {
             final Build build = ((Model) model).getBuild();
             if (build != null) {
-                for (Plugin bp : build.getPlugins()) {
+                for (Plugin bp: build.getPlugins()) {
                     interpolate(dict, bp.getDependencies());
                 }
                 if (build.getPluginManagement() != null) {
-                    for (Plugin bp : build.getPluginManagement().getPlugins()) {
+                    for (Plugin bp: build.getPluginManagement().getPlugins()) {
                         interpolate(dict, bp.getDependencies());
                     }
                 }
@@ -210,13 +217,13 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
             return;
         }
 
-        for (Dependency d : dependencies) {
+        for (Dependency d: dependencies) {
             d.setGroupId(interpolate(dict, d.getGroupId()));
             d.setArtifactId(interpolate(dict, d.getArtifactId()));
             d.setVersion(interpolate(dict, d.getVersion()));
             d.setClassifier(interpolate(dict, d.getClassifier()));
             d.setSystemPath(interpolate(dict, d.getSystemPath()));
-            for (Exclusion e : d.getExclusions()) {
+            for (Exclusion e: d.getExclusions()) {
                 e.setGroupId(interpolate(dict, e.getGroupId()));
                 e.setArtifactId(interpolate(dict, e.getArtifactId()));
             }
@@ -229,16 +236,17 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
             return null;
         }
 
-        for (; ; ) {
+        for (;;) {
             if (!value.contains("${")) {
                 // Nothing to interpolate.
                 break;
             }
 
-            @SuppressWarnings({"unchecked", "rawtypes"}) final InterpolationFilterReader reader = new InterpolationFilterReader(
+            @SuppressWarnings({ "unchecked", "rawtypes" })
+            final InterpolationFilterReader reader = new InterpolationFilterReader(
                     new StringReader(value), (Map<String, Object>) (Map) dict);
             final StringWriter writer = new StringWriter(value.length());
-            for (; ; ) {
+            for (;;) {
                 final int ch;
                 try {
                     ch = reader.read();
