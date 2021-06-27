@@ -1,3 +1,4 @@
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.SystemUtils
 
 def projectPropertiesFile = new File(basedir, "target/project.properties")
@@ -12,4 +13,10 @@ projectPropertiesFile.withInputStream {
 
 if (SystemUtils.IS_OS_WINDOWS) {
     assert projectProperties."active.profile" == 'detected-windows'
+} else if (SystemUtils.IS_OS_LINUX) {
+    String osReleaseContent = FileUtils.readFileToString(new File("/etc/os-release"))
+
+    if (osReleaseContent.contains("id=ubuntu")) {
+        assert projectProperties."active.profile" == 'detected-ubuntu'
+    }
 }

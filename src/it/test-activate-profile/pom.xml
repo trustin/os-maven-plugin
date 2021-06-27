@@ -53,5 +53,18 @@
                 <active.profile>detected-windows</active.profile>
             </properties>
         </profile>
+
+        <profile>
+            <id>detected-ubuntu</id>
+            <activation>
+                <property>
+                    <name>os.detected.release</name>
+                    <value>ubuntu</value>
+                </property>
+            </activation>
+            <properties>
+                <active.profile>detected-ubuntu</active.profile>
+            </properties>
+        </profile>
     </profiles>
 </project>
