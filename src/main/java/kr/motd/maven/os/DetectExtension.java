@@ -90,6 +90,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         };
     }
 
+    @Override
     public void afterSessionStart(MavenSession session) throws MavenExecutionException {
         injectProperties(session);
     }
