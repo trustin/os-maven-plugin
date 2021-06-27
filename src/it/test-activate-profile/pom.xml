@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>kr.motd.maven.it</groupId>
+    <artifactId>test-01</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <description>
+        An integration test that checks whether the profile can be activated by detected properties. If the
+        project.properties file contains the "active.profile" property and it has the expected value, the test is
+        considered successful.
+    </description>
+
+    <prerequisites>
+        <!-- (since Maven 3.3.1) configure your extension in .mvn/extensions.xml -->
+        <!-- https://maven.apache.org/examples/maven-3-lifecycle-extensions.html -->
+        <maven>3.3.1</maven>
+    </prerequisites>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <id>write-project-properties</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>${project.build.directory}/project.properties</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>detected-windows</id>
+            <activation>
+                <property>
+                    <name>os.detected.name</name>
+                    <value>windows</value>
+                </property>
+            </activation>
+            <properties>
+                <active.profile>detected-windows</active.profile>
+            </properties>
+        </profile>
+    </profiles>
+</project>
