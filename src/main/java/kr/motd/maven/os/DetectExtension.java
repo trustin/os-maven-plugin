@@ -148,7 +148,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         }
 
         return DetectMojo.getClassifierWithLikes(
-                props.getProperty(DetectMojo.CLASSIFIER_WITH_LIKES_PROPERTY));
+            props.getProperty(DetectMojo.CLASSIFIER_WITH_LIKES_PROPERTY));
     }
 
     private void injectSession(MavenSession session, Map<String, String> dict) {
