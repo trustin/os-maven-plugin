@@ -19,4 +19,6 @@ if (SystemUtils.IS_OS_WINDOWS) {
     if (osReleaseContent.contains("ID=ubuntu")) {
         assert projectProperties."active.profile" == 'detected-ubuntu'
     }
+} else if (SystemUtils.IS_OS_MAC) {
+    assert projectProperties."active.profile" == 'detected-osx'
 }

@@ -66,5 +66,18 @@
                 <active.profile>detected-ubuntu</active.profile>
             </properties>
         </profile>
+
+        <profile>
+            <id>detected-osx</id>
+            <activation>
+                <property>
+                    <name>os.detected.name</name>
+                    <value>osx</value>
+                </property>
+            </activation>
+            <properties>
+                <active.profile>detected-osx</active.profile>
+            </properties>
+        </profile>
     </profiles>
 </project>
