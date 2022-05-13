@@ -46,6 +46,7 @@
 * `s390_64` if the value is `s390x`
 * `riscv` if the value is `riscv`
 * `e2k` if the value is `e2k`
+* `loongarch_64` if the value is `loongarch64`
 
 Note: The bitness part of this property relies on the bitness of the JVM binary, e.g. You'll get the property that ends with `_32` if you run a 32-bit JVM on a 64-bit OS.
 
