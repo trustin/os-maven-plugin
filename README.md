@@ -44,7 +44,7 @@
 * `ppcle_64` - if the value is `ppc64le`
 * `s390_32` - if the value is `s390`
 * `s390_64` if the value is `s390x`
-* `riscv` if the value is `riscv`
+* `riscv` if the value is `riscv` or `riscv32`
 * `riscv64` if the value is `riscv64`
 * `e2k` if the value is `e2k`
 
