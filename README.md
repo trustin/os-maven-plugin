@@ -14,7 +14,7 @@
 * `hpux` - if the value starts with `hpux`
 * `os400` - if the value starts with `os400` and its following character is *not* a digit (e.g. `os4000`)
 * `linux` - if the value starts with `linux`
-* `osx` - if the value starts with `macosx` or `osx`
+* `osx` - if the value starts with `mac` or `osx`
 * `freebsd` - if the value starts with `freebsd`
 * `openbsd` - if the value starts with `openbsd`
 * `netbsd` - if the value starts with `netbsd`

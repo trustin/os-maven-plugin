@@ -164,7 +164,7 @@ public abstract class Detector {
         if (value.startsWith("linux")) {
             return "linux";
         }
-        if (value.startsWith("macosx") || value.startsWith("osx")) {
+        if (value.startsWith("mac") || value.startsWith("osx")) {
             return "osx";
         }
         if (value.startsWith("freebsd")) {
