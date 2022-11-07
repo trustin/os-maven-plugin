@@ -245,8 +245,11 @@ public abstract class Detector {
         if ("s390x".equals(value)) {
             return "s390_64";
         }
-        if ("riscv".equals(value)) {
+        if (value.matches("^(riscv|riscv32)$")) {
             return "riscv";
+        }
+        if ("riscv64".equals(value)) {
+            return "riscv64";
         }
         if ("e2k".equals(value)) {
             return "e2k";
