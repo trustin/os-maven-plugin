@@ -91,7 +91,16 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
     }
 
     @Override
+    public void afterSessionStart(MavenSession session) throws MavenExecutionException {
+        injectProperties(session);
+    }
+
+    @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
+        injectProperties(session);
+    }
+
+    private void injectProperties(MavenSession session) throws MavenExecutionException {
         // Detect the OS and CPU architecture.
         final Properties sessionProps = new Properties();
         sessionProps.putAll(session.getSystemProperties());
@@ -118,8 +127,10 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         injectSession(session, dict);
 
         /// Perform the interpolation for the properties of all dependencies.
-        for (MavenProject p: session.getProjects()) {
-            interpolate(dict, p);
+        if (session.getProjects() != null) {
+            for (MavenProject p : session.getProjects()) {
+                interpolate(dict, p);
+            }
         }
     }
 
@@ -131,7 +142,11 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         // Check to see if the project defined the
         final Properties props = new Properties();
         props.putAll(session.getUserProperties());
-        props.putAll(session.getCurrentProject().getProperties());
+
+        if (session.getCurrentProject() != null) {
+            props.putAll(session.getCurrentProject().getProperties());
+        }
+
         return DetectMojo.getClassifierWithLikes(
             props.getProperty(DetectMojo.CLASSIFIER_WITH_LIKES_PROPERTY));
     }
