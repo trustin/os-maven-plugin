@@ -257,6 +257,9 @@ public abstract class Detector {
         if ("loongarch64".equals(value)) {
             return "loongarch_64";
         }
+        if ("sw64".equals(value)) {
+            return "sw_64";
+        }
         return UNKNOWN;
     }
 
