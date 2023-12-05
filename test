@@ -1,4 +1,7 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
+
 cd "$(dirname "$0")"
 TOP_PROJ_DIR="$PWD"
 BUILD_SRC_DIR="$PWD/src/build"
