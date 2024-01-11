@@ -2,6 +2,8 @@ package kr.motd.maven.os;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.maven.execution.MavenSession;
@@ -32,8 +34,27 @@ final class RepositorySessionInjector {
                 final Field f = cls.getDeclaredField("systemProperties");
                 f.setAccessible(true);
                 repoSessionProps = (Map<String, String>) f.get(repoSession);
-                for (Map.Entry<String, String> e : dict.entrySet()) {
-                    repoSessionProps.put(e.getKey(), e.getValue());
+                try {
+                    for (Map.Entry<String, String> e : dict.entrySet()) {
+                        repoSessionProps.put(e.getKey(), e.getValue());
+                    }
+                } catch (Exception ex2) {
+                    // In Maven 4, DefaultCloseableSession uses an immutable map
+                    // but DefaultRepositorySystemSession may also have an immutable map
+                    repoSessionProps = new HashMap<>(repoSessionProps);
+                    for (Map.Entry<String, String> e : dict.entrySet()) {
+                        repoSessionProps.put(e.getKey(), e.getValue());
+                    }
+                    repoSessionProps = Collections.unmodifiableMap(repoSessionProps);
+                    f.set(repoSession, repoSessionProps);
+                    try {
+                        // This is to support DefaultRepositorySystemSession
+                        final Field fv = cls.getDeclaredField("systemPropertiesView");
+                        fv.setAccessible(true);
+                        fv.set(repoSession, repoSessionProps);
+                    } catch (Exception ex3) {
+                        // ignore
+                    }
                 }
             }
         } catch (Throwable t) {
