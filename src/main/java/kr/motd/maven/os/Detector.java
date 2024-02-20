@@ -70,6 +70,7 @@ public abstract class Detector {
     }
 
     protected void detect(Properties props, List<String> classifierWithLikes) {
+        new Throwable().printStackTrace();
         log("------------------------------------------------------------------------");
         log("Detecting the operating system and CPU architecture");
         log("------------------------------------------------------------------------");

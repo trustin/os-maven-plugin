@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
@@ -71,6 +72,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
 
     private final Logger logger;
     private final Detector detector;
+    private static boolean disable;
 
     @Inject
     public DetectExtension(final Logger logger) {
@@ -90,6 +92,10 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
         };
     }
 
+    public static void disable() {
+        disable = true;
+    }
+
     @Override
     public void afterSessionStart(MavenSession session) throws MavenExecutionException {
         injectProperties(session);
@@ -101,7 +107,26 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
     }
 
     private void injectProperties(MavenSession session) throws MavenExecutionException {
+        // Bail out of disabled
+        if (disable) {
+            return;
+        }
+
         // Detect the OS and CPU architecture.
+        final Map<String, String> dict = getProperties(session);
+
+        // Inject the current session.
+        injectSession(session, dict);
+
+        /// Perform the interpolation for the properties of all dependencies.
+        if (session.getProjects() != null) {
+            for (MavenProject p : session.getProjects()) {
+                interpolate(dict, p);
+            }
+        }
+    }
+
+    private Map<String, String> getProperties(MavenSession session) throws MavenExecutionException {
         final Properties sessionProps = new Properties();
         sessionProps.putAll(session.getSystemProperties());
         sessionProps.putAll(session.getUserProperties());
@@ -122,16 +147,7 @@ public class DetectExtension extends AbstractMavenLifecycleParticipant {
                 dict.put(entry.getKey().toString(), entry.getValue().toString());
             }
         }
-
-        // Inject the current session.
-        injectSession(session, dict);
-
-        /// Perform the interpolation for the properties of all dependencies.
-        if (session.getProjects() != null) {
-            for (MavenProject p : session.getProjects()) {
-                interpolate(dict, p);
-            }
-        }
+        return dict;
     }
 
     /**
